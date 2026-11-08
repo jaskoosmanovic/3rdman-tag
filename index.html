@@ -5,8 +5,7 @@
 <link rel="icon" type="image/png" href="https://jaskoosmanovic.github.io/3rdman-tag/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="3rd Man Tag"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Club identity: NK Kustošija gold and black (scoreboard, accents, neutrals); code colours stay as the analyst set them.
    Layout: sticky scoreboard (tap score = goal) + clocks; target strip; code window as blocks (code button + its label rows); general labels; tabs: timeline / matrix / buttons editor / export */
@@ -321,6 +320,8 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
 .zsz{display:flex;gap:4px;text-transform:none;letter-spacing:0}
 .zsz button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:2px 12px;font-size:13px;font-weight:700;min-height:32px;min-width:40px}
 .zsz button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!important}
+.ver{margin-top:22px;font-size:12px;opacity:.6;font-family:var(--f-mono)}
 </style>
 
 </head><body>
@@ -427,8 +428,8 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
   </section>
 
   <section class="panel set" id="p-ut" hidden>
-    <h3>Zajedničko tagiranje</h3>
-    <div class="card" id="coCard">
+    <h3 class="claude-only">Zajedničko tagiranje</h3>
+    <div class="card claude-only" id="coCard">
       <p id="coUnavail" hidden>Zajedničko tagiranje nije dostupno u ovom prikazu. Otvori aplikaciju prijavljen u Claude.</p>
       <div id="coOff">
         <div class="row" style="margin-bottom:10px"><label class="lbl-s" for="devName">Tvoje ime</label><input type="text" id="devName" maxlength="20" placeholder="npr. Jasko" style="flex:1 1 160px"></div>
@@ -443,10 +444,17 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
         <div class="bar"><button class="ghost" id="coCopy">Kopiraj kod</button><button class="ghost" id="coLeave">Prekini vezu</button></div>
       </div>
     </div>
-    <p>Kolega mora imati pristup ovoj aplikaciji barem kao <b>Contributor</b>. Dodaj ga preko izbornika Share na vrhu stranice.</p>
+    <p class="claude-only">Kolega mora imati pristup ovoj aplikaciji barem kao <b>Contributor</b>. Dodaj ga preko izbornika Share na vrhu stranice.</p>
 
     <h3>Sigurnosna kopija</h3>
-    <div class="card">
+    <div class="card sa-only" id="saBk">
+      <span class="pill off" id="saBkStatus"><i></i>Još nije spremljena</span>
+      <p>Utakmice se čuvaju samo na ovom mobitelu. Ako obrišeš ikonu ili podatke Safarija, nestaju. Povremeno spremi cijelu arhivu (Files, iCloud ili pošalji sebi), a na novom mobitelu je vrati gumbom <b>Vrati arhivu</b>.</p>
+      <div class="bar"><button class="primary" id="saBkSave">Spremi cijelu arhivu</button><button class="ghost" id="saBkLoad">Vrati arhivu</button></div>
+      <input type="file" id="saBkIn" accept=".json,application/json,text/plain" hidden>
+      <div class="row"><label class="lbl-s"><input type="checkbox" id="saAutoXml" checked> Na kraju utakmice odmah ponudi spremanje XML-a</label></div>
+    </div>
+    <div class="card claude-only">
       <span class="pill off" id="bkStatus"><i></i>Provjeravam…</span>
       <p id="bkInfo">Svaka utakmica se automatski sprema na tvoj Claude račun, nekoliko sekundi nakon svakog tapa. Kopiju vidiš samo ti i možeš je otvoriti s bilo kojeg uređaja.</p>
       <div class="bar" id="bkBar" hidden><button class="ghost" id="bkLoad">Prikaži utakmice s računa</button><button class="ghost" id="bkNow">Spremi sada</button></div>
@@ -466,6 +474,7 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -513,8 +522,8 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
     <div class="row"><label class="lbl-s"><input type="checkbox" id="exSys"> Izvezi i sustave igre kao oznake</label></div>
     <div class="row"><label class="lbl-s"><input type="checkbox" id="exHalves" checked> Dodaj retke 1. i 2. poluvrijeme (3rd Man Studio po njima sama usklađuje video)</label></div>
     <div class="row"><label class="lbl-s" for="exPl">Samo akcije igrača</label><select id="exPl" style="padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);max-width:100%"></select></div>
-    <div class="bar" id="saveBar" hidden><button class="primary" id="saveXml">Spremi XML (zip)</button><button class="ghost" id="saveCsv">Spremi CSV</button></div>
-    <p id="saveNote" hidden>Spremljeni ZIP otvori (na iPhoneu tap u aplikaciji Files) i unutra je .xml datoteka spremna za Sportscode.</p>
+    <div class="bar" id="saveBar" hidden><button class="primary" id="saveXml">Spremi XML</button><button class="ghost" id="saveCsv">Spremi CSV</button></div>
+    <p id="saveNote" class="claude-only" hidden>Spremljeni ZIP otvori (na iPhoneu tap u aplikaciji Files) i unutra je .xml datoteka spremna za Sportscode.</p>
     <div class="bar"><button class="ghost" id="copyXml">Kopiraj XML</button><button class="ghost" id="copyCsv">Kopiraj CSV</button><button class="ghost" id="copySum">Kopiraj sažetak</button></div>
     <pre class="out" id="out">Ovdje se pojavi izvezeni tekst. Ako kopiranje ne uspije, označi ga ručno.</pre>
     <div id="resetWrap"><button class="danger" id="resetMatch">Obriši utakmicu</button></div>
@@ -593,7 +602,7 @@ function sample(){
   s.target=s.inst[s.inst.length-1].id;return s;
 }
 let S=lsGet(KEY,null);
-if(!S||!Array.isArray(S.inst)||!Array.isArray(S.buttons))S=sample();
+if(!S||!Array.isArray(S.inst)||!Array.isArray(S.buttons))S=Object.assign(blank(),{away:"Gosti"});
 if(!S.roster)S.roster=DEF_ROSTER;if(!S.team)S.team="kust";if(!S.crests)S.crests={};if(!S.crests.kust)S.crests.kust=KUST_CREST;if(!S.rosters)S.rosters={kust:S.roster};if(!S.rosters.cro)S.rosters.cro=CRO_ROSTER;S.roster=S.roster.replace(/^9 Filip Golem$/m,"Filip Golem"); /* Gashi wears 9 */if(S.home==="Domaći"||S.home==="NK Zagreb")S.home=DEF_HOME;if(S.showZone==null)S.showZone=true;if(!S.zones)S.zones="4x2";if(!S.sys)S.sys={us:"",op:""};if(S.sysList==null)S.sysList=DEFSYS;if(!S.created)S.created=[];if(!S.mid)S.mid=nid();
 S.buttons.forEach(b=>{if(b.name==="Individualno"&&+b.lead===5&&+b.lag===5){b.lead=7;b.lag=7}});
 /* novi igrači u postojećem popisu Kustošije (popis na mobitelu se inače ne mijenja sam) */
@@ -901,6 +910,7 @@ $("endBtn").onclick=()=>{const b=$("endBtn");
   if(S.running){S.elapsed[S.half-1]=mnow();S.running=false;S.startedAt=null}
   const t=snow();let n=0;S.inst.forEach(i=>{if(i.end==null){closeInst(i,t);n++}});
   S.ended=Date.now();save();backupNow(true);renderLive();
+  if(isSA()&&$("saAutoXml").checked&&S.inst.some(exFilter)){exportMatch(S);return}
   document.querySelector('.tabs button[data-tab="ex"]').click();
   setTimeout(()=>$("p-ex").scrollIntoView({behavior:"smooth",block:"start"}),50);
   toast("Utakmica završena"+(n?" · zatvoreno otvorenih: "+n:"")+". Spremi XML.")};
@@ -1177,8 +1187,18 @@ function baseName(M){M=M||S;const d=new Date(M.sessionStart||Date.now());const s
   return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${slug(M.home)}-vs-${slug(M.away)}${pl}`}
 let DL=null;
 const isSA=()=>!(window.claude&&window.claude.use);
+/* samostalno: na mobitelu izbornik za dijeljenje (Files, AirDrop, mail), inače obično preuzimanje */
+function dlAnchor(filename,blob){const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)}
+const MIME={xml:"text/xml",csv:"text/csv",json:"application/json",zip:"application/zip"};
 async function saveFile(filename,data,label){
-  if(!DL&&isSA()){try{const blob=data instanceof Blob?data:new Blob([data],{type:"text/plain"});const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast(label+" spremljen");return true}catch(e){toast("Spremanje ne radi, koristi Kopiraj");return true}}
+  if(!DL&&isSA()){const ext=filename.split(".").pop(),type=MIME[ext]||"text/plain";
+    const blob=data instanceof Blob?data:new Blob([data],{type});
+    try{const f=new File([blob],filename,{type});
+      if(navigator.canShare&&navigator.share&&/iPhone|iPad|Android/i.test(navigator.userAgent)&&navigator.canShare({files:[f]})){
+        try{await navigator.share({files:[f],title:filename});toast(label+" spremljen");return true}
+        catch(e){if(e&&e.name==="AbortError"){toast("Spremanje otkazano");return false}}}
+      dlAnchor(filename,blob);toast(label+" spremljen");return true}
+    catch(e){toast("Spremanje ne radi, koristi Kopiraj");return false}}
   if(!DL)return false;
   try{await DL.save({filename,data});toast(label+" spremljen");return true}
   catch(e){const c=e&&e.code;
@@ -1187,7 +1207,7 @@ async function saveFile(filename,data,label){
     else{toast("Spremanje ovdje ne radi, koristi Kopiraj");if(c!=="bad_request"&&c!=="too_large"){DL=null;$("saveBar").hidden=true;$("saveNote").hidden=true}}
     return true}
 }
-async function exportMatch(M){const n=baseName(M);if(DL||isSA())await saveFile(n+".zip",zip(n+".xml",xml(M)),"XML");else{copy(xml(M),"XML")}}
+async function exportMatch(M){const n=baseName(M);if(!DL&&isSA())return saveFile(n+".xml",xml(M),"XML");if(DL)return saveFile(n+".zip",zip(n+".xml",xml(M)),"XML");copy(xml(M),"XML")}
 $("saveXml").onclick=()=>{if(!S.inst.length)return toast("Nema instanci za izvoz");if(!S.inst.some(exFilter))return toast("Nema akcija za odabrani filter");exportMatch(S)};
 $("saveCsv").onclick=()=>{if(!S.inst.length)return toast("Nema instanci za izvoz");saveFile(baseName()+".csv","﻿"+csv(),"CSV")};
 $("copyXml").onclick=()=>copy(xml(),"XML");$("copyCsv").onclick=()=>copy(csv(),"CSV");$("copySum").onclick=()=>copy(summary(),"Sažetak");
@@ -1287,13 +1307,38 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
   const [dl,db,sm,us]=await Promise.all([use("downloads"),use("db"),use("sample"),use("user")]);
   if(us){try{UID=await us.id()}catch(e){UID=null}}
   if(sm){try{const lim=await sm.limits();if(lim&&lim.images){SAMPLE=sm;$("imgBtn").hidden=false;if(lim.images.mediaTypes)$("imgIn").accept=lim.images.mediaTypes.join(",")}}catch(e){}}
-  DL=dl;if(DL||isSA()){$("saveBar").hidden=false;$("saveNote").hidden=false}
+  DL=dl;if(DL||isSA()){$("saveBar").hidden=false;$("saveNote").hidden=false}saMode();
   DB=db;DBPENDING=false;
   if(DB&&UID)backupNow();
   if(DB&&S.co)subscribe(S.co);else if(S.co){/* shared match but no db here: keep working locally */}
   renderArch();
 })();
 
+/* ---------- samostalni način (bez Claudea) ---------- */
+const VER="2026.11.08",BKKEY="terenTagger.lastFileBackup";
+function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
+function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
+  if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
+  const d=new Date(t),days=Math.floor((Date.now()-t)/864e5);el.className="pill"+(days>7?" off":"");
+  el.lastChild.textContent="Zadnja kopija "+d.getDate()+". "+(d.getMonth()+1)+". u "+pad(d.getHours())+":"+pad(d.getMinutes())+(days>7?" · starija od tjedan dana":"")}
+function settingsOf(){const k=keepSettings({});delete k.home;return k}
+$("saBkSave").onclick=async()=>{const cur=S.inst.length&&!S.sample?S:null;
+  const doc={app:"3rd Man Tag",kind:"arhiva",v:1,ver:VER,savedAt:Date.now(),current:cur,archive:ARCH,settings:settingsOf()};
+  const d=new Date();const ok=await saveFile(`3rdManTag-arhiva_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`,JSON.stringify(doc),"Arhiva");
+  if(ok){lsSet(BKKEY,Date.now());saBkStatus()}};
+$("saBkLoad").onclick=()=>{$("saBkIn").value="";$("saBkIn").click()};
+$("saBkIn").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;let doc;
+  try{doc=JSON.parse(await f.text())}catch(x){return toast("To nije arhiva 3rd Man Taga")}
+  if(!doc||doc.app!=="3rd Man Tag"||!Array.isArray(doc.archive))return toast("To nije arhiva 3rd Man Taga");
+  const list=doc.archive.slice();if(doc.current&&Array.isArray(doc.current.inst)&&doc.current.inst.length){const c=doc.current;list.push({team:c.team,mid:c.mid,home:c.home,away:c.away,inst:c.inst,sessionStart:c.sessionStart,videoOffset:c.videoOffset,h2:c.h2||null,elapsed:c.elapsed,half:c.half,ended:c.ended||null,kicks:c.kicks||null,savedAt:doc.savedAt})}
+  let add=0,upd=0;for(const m of list){if(!m||!m.mid||!Array.isArray(m.inst))continue;if(m.mid===S.mid&&S.inst.length)continue;
+    const k=ARCH.findIndex(a=>a.mid===m.mid);if(k<0){ARCH.push(m);add++}else if((m.savedAt||0)>(ARCH[k].savedAt||0)){ARCH[k]=m;upd++}}
+  if(doc.settings&&(!S.inst.length||S.sample)){const st=doc.settings;["buttons","labelsText","roster","rosters","team","crests","showZone","zones","sysList","sys"].forEach(k=>{if(st[k]!=null)S[k]=st[k]})}
+  if(lsSet(AKEY,ARCH)===false){toast("Nema mjesta na mobitelu za cijelu arhivu");return}
+  save();renderAll();saBkStatus();toast(`Arhiva vraćena · novih utakmica: ${add}${upd?", ažurirano: "+upd:""}`)};
+if("serviceWorker" in navigator&&location.protocol==="https:"&&window.top===window&&/github\.io$/.test(location.hostname)){
+  addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+saMode();setTimeout(saMode,5500);
 let lock=null;async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.running)wake();if(document.visibilityState==="hidden")backupNow()});
 setInterval(()=>{if(S.running||S.inst.some(i=>i.end==null))tick()},500);
