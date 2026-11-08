@@ -351,6 +351,11 @@ html{background:#1c181b}
 .ht .km{list-style:none;margin:0;padding:0}.ht .km li{border-left:4px solid var(--c,#888);background:var(--surface);padding:9px 12px;margin-bottom:6px;border-radius:0 6px 6px 0}
 .ht .km .t{font:700 15px var(--f-mono)}.ht .km .c{font:700 15px var(--f-display);text-transform:uppercase;margin-left:8px}.ht .km .l{color:var(--muted);font-size:13px;margin-top:2px}.ht .km .nt{font-weight:600;margin-top:3px}
 .ht .empty{color:var(--muted);padding:20px 0}
+.kseg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;max-width:460px}
+.kseg button{flex:1;border:0;background:var(--surface);color:var(--ink);padding:11px 8px;font:600 15px var(--f-body);min-height:44px}
+.kseg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+body.scout .board{border-bottom-color:#6a4bc8}
+body.scout #tagH{color:#b9a6ff}
 body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!important}
 .ver{margin-top:22px;font-size:12px;opacity:.6;font-family:var(--f-mono)}
 </style>
@@ -359,7 +364,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
 <header class="board">
   <div class="board-in">
     <div class="team home">
-      <span class="tag"><span class="dot h"></span>Domaći</span>
+      <span class="tag" id="tagH"><span class="dot h"></span>Domaći</span>
       <div class="tn"><img id="crestH" alt="Grb" hidden><input id="nameH" aria-label="Ime domaće ekipe" maxlength="24"></div>
     </div>
     <div>
@@ -367,7 +372,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span class="shint">tap = gol</span>
     </div>
     <div class="team away">
-      <span class="tag">Gosti<span class="dot a"></span></span>
+      <span class="tag" id="tagA">Gosti<span class="dot a"></span></span>
       <input id="nameA" aria-label="Ime suparnika" maxlength="24" placeholder="Upiši suparnika" autocomplete="off">
       <datalist id="oppList"></datalist>
     </div>
@@ -506,6 +511,10 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       </div>
     </div>
 
+    <h3>Vrsta utakmice</h3>
+    <div class="kseg" id="kindSeg"><button data-k="our" aria-pressed="true">Naša utakmica</button><button data-k="opp" aria-pressed="false">Skauting suparnika</button></div>
+    <p class="lbl-s" style="text-transform:none;letter-spacing:0;font-size:13px;margin:6px 0 0">Skauting ima vlastite gumbe (PRESSING, PREKIDI napad i obrana, Ključni igrač) i svoj popis igrača za svakog suparnika. Na semaforu lijevo upisuješ koga skautiraš, desno protiv koga igra. 3rd Man Studio takvu utakmicu otvara kao skauting projekt.</p>
+
     <h3>Utakmice na ovom mobitelu</h3>
     <div class="row"><label class="lbl-s" for="oppIn">Suparnik</label><input type="text" id="oppIn" class="opp" maxlength="24" placeholder="npr. NK Rudeš" list="oppList"></div>
     <div class="row"><label class="lbl-s" for="teamSel2">Ekipa koju tagiraš</label><select id="teamSel2" class="tsel"><option value="kust">NK Kustošija</option><option value="cro">Hrvatska</option></select></div>
@@ -515,7 +524,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08f</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08g</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -591,7 +600,8 @@ const GOAL={h:"goal-h",a:"goal-a"},GOALCOL="#0f7a3d";
 const DEF_HOME="NK Kustošija";
 const KUST_CREST="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAwFBMVEUrFh0kHyAcGRwgHR9/Pz9/fz9mZmaqqlX/f3+1mGgAAABUSDiNd1RpWUIaFxsqJSN3ZUlFOzDDo26bg1unjGGCbU47MyyhiF6+oGxhUj4gHR4iHiBeUD0CAwwKChMsJiQWFBk+Pj4NDRU6MisxKiYbGBtVAAAlISFEOjBVVVU7AAANDBT//wAhHR45Mip/f38iHiAoKCg/PwBOQzVVVQAiHh4jHiD/AAAODRUREBd/AAB/fwDYtXn///8FFBQcGRx3P02vAAAAQHRSTlMTdrTFBAQFAwL+APj7+f38+fj++/z6+fz++P39+C9LsHAE/c/PiQOS1QMEagGVuQKQBgTaA6asAZRaAgL+ARLJG1O58gAAFppJREFUeNq1W4di4ziy9L0MASAAIpEUbXkcJm9Ot/tu7/7/r66qQclKntHM7HCDaVkSmo3u6uqAq9WnXC9w4ccfq9XtRuuweccXr7+51/r+mxt5x0u84+WnfOXVJ7z3/e7uNhjFyz9cv3nUibfJ/rJavV3+/vLrCLC6vn18vL1erR5tH0ettVUq/KfpDW617+PDP1erm9vH25uvooE/Vjcba1IyevPO9lZHPLUJZtDZWqrABhV//VvINUX/+vZraOBxxIreG5WC9ZaPjRdC7ovuPZVhAsTqU/a59ubh+q8T4OWL797//MPq1mMdb4wN0LkzXosCeqheF69UDirrHluRDURT6QEW+92fb178ZRq41r21KmUYn4bVaYf1qgpeJKA4BsubVFTEW0xQ5vEv08DNq8395t1/KDNCxcZjzYj/jNPVteV976xxvfUKWigWOhJp3r369tvN7RcK8HJ1c+/pZFCri9z5pLgHWCNpbeaxKUDpcba9rly3GhUDXoMW5HO3X6aBW2y1n7WF5rN2xlrsL/ZAVQGCUVtKIPfOJK4bHbbD5qoV3GO0sJeHLxHgdwvLo+9ZbaOqszPaB+gB7odX8OgOEmRINOqolccmwC2DVVg+WZ0S0ELFzRcIAM8a+2ipADNjJeVhfz5ERQxKKuo0UgcqJRgeVlXYJW+gAnhLggr8gJ3wt6sXnyHAi/f/t7o1VRNzIjQPGTzUYEKN8Po+67YdpaN74t5y32EDeEvxcaYSfKJ3zMM9UPxZh/ygBr7tbYLxezw3vguAZ2DqNQz5LuCVqgbjOtdBDNwr78pgsT3WR+qCSvAwwgG315+xBTff37++d6PLIXpvi6wONVQoQ1XnuglwOJZucrh32nrtunUnjlqNL9FnY1UxiyQPP71ugfNyATaC7yoaP+qCNQG2sPXkYQ59xJJYltd64v/kVkSxPd7iKw0AS4++VGAnNNLDhu5vLhfg+r4OWFKPPkvMSbBua7TzlZ49Ta6t6XbXtIjQlZwI0Y5P7odooQh4ZJhnPNB5SDgrwAMCDvcdCoCl2expeX2QNbEQHppaN1G0RAvAY+rgFk1QOgPT0bPRo6gCodMQsW4uEuDn1aNRMDLACHYSa+DrYXnKyBNTCO2hl2FQ+xd+A1pQCNkLYBI4gxEj0AQs089+KBdqAM4UAXVQAMBMSwhEfHNUcedmI6udvQZVfVjLXpAyeEQOIlK1PmmB6jOIcCLA29WNJ5CqSAWICeQcEXwmLB/ys4vvZIiWcnaWH4xjtdGbrDNRwqrN6s3HBHj736vbZEwFnAJQylhEAzlM2HmA0UeWX2TwcNMOIRKwZbA8FOl9HPFQr1cnKjizBX9H9NHBwtGVxT/NtrB8VJdeIkK7ILzBBow2ERzD9Udt4PZeU/VyUW1eiZ91xahPuQZlJ0ELPjks2tsq6Kx/enX9IQGuH7AOjA8L46LhJBp/N1l1YvM1qmwrQiBoIm3laHeGGOCtHawQBg0AEw1o1SfAwcvnBLgODPYILU0HjHxDgUGV2B+uDsX4DqEOocqBnsLJCwPGkWtaGiNcGihgLa1KBaB57x+f1cA9eaZadEBwgfG2aLN3VSyF70yd6ZUfLGyjIk50aTTK57T/TrgOlIDHsCKA6ECNc29v9nTwJMAbRN8Ect9U4HMWAgqk94e6zZ1PWBtcBLaGx8Q+q2F0kMyVaEX+3XtTACiYvjJEUgcFeGgt4vNvZzXwGgBkmGiBAvECCZPPPy3Or+9D0FhbOd0jWlvVgyHjNQqb8Mx8cPvkMBoOGTwEMBRhBJGCXeWb1Y9nBLhuMczogAAYxJEQ9+LevmpRhu90hz2wa5PBwcYIQ0mIxJAIEnYxhnnfY23nmjsyLBYAJAHp1RMcXO0RYLyFpgI+MSqL2MNQX5/UCYLT0tDOgBHA9EXflR5gmCXh23s9KReU3fNZWAndEXgISILLRNrCZvX/JwIAgk3yxD+yTDUrmv/++qHDn2U7sITsc3/gGZCCrgGlw+tV7Q8k6AyJAVyMDzmqzYufzwhwjfSCwAuzNREIiLi/U2UCG3HaEV7xzM+gT/UC+I4fK0+mO4wdAWmGPyIgUZD0zTk3vPkl0HhitvQ+AtBkdvuv9TDg8bxz+YMICILax7vc287ueaTuGJ+Rv1jh68b86/ZUgF/xiZRHPZIEYRfAcny/59J5UAU+nT6GwUCPAlu0+9CF7QQgQYKFH0CEHUHbCvAQmWQL5wINjBRab58flB+OBAi7LCCASLjA9e3OgirdCRQHVEYAEci+pUeLAJsor1bfjCBC5LLbf+3AdKYp1ouiMVU+pQhMeILQwQBQYMKatoi4JIn99U4AeKAd4NlYHYtXP2N5N8U9/SMboAoOl0lJ+Goy7eeBEnJn4j6ED4R0mLiYQC51wH40X6QA3602ktfBcEHrtBXuub+JAwKe6k9UDWdF2gTeWi3zxIMoMOYubP1TLke2ulBEBC96+vXTFsgfDCMhvqwvYF/l0Li1PqNpxJh/GKAPKjb8eSgdUkW8Ev3TJhANCMhIpHsxRGGIVwsIkzDpPAKAELMkih5+37mtZv4JzgDYkZ9HDomQanOZ9nzRTY0h+hGCIHl59SSAQPCg/SgYSA+4yNaw/1KekZ8nsEQ+OD25clyvp0QBDMoGFKBR1EUDCkFqXp4GXru+iP9lCQcI3inaMyqC0zh3YIfcgqR7UxQQ0dfHrQbeIxAjA8oqzaA4pk5PEPBFV7IHOwkwGCXaMk1A0uxvtkb4w+pvcMAhki8xXl+ogAv26MCU6YopMsWhBc7q4QmIbh48mVCldL2/0AIuAsWD3yK4iaqaPjiA+rhXWwFupfBUh8zCyxkXkGt0BZW5/oJVUcbje8/8BeltiapAAVAEss1NE+BG95nlT9Z6LEse7qw2mZlpnz6+80iUAWXlVIIh48vXZVEA+Iv5FQL8hmTc66GS0wCHBATPmCC4wHrNpK/uvejBx6o2eT40tY5vLfaMcEwwxQLgaqxmgh9fIRdVoffMx2GefMtkzimP/KwLpRzgY4kdCoP2QGXBBWrRNSg+egz8BTVE8tKgB8D/BgK8Sig1wDmDpZPYbipnjClI1g+pvTgIaBFCJmqXqF/PFkXkuLzGOGTI5ihAPLMHaygAnEc5lH6x3E8Q4Fs1AqBY4haY6rrxaAd6ehAUE8DIUIxnbOpAgeNdtUuFRiuQJbw2shaENGxyYe3WWgD50D4kV+NzytNi4esrpEMz7wzpmghwtANMAFUJXAeBr28KSaAWoQ6mBPwDmYIUQ1rkCayZOTgCDdIfb2ULiEK9CcwQYAPmgmIUyF7gHcDiUGhNMoOvwy5sAT/z68HM+0yDA3VLRV6x2ziNdA6/JxikPvg2MOQilEw53+q5EOB71HbQ9kgSj2Em5dj811AbTMMV1CiKIEGdtXSMEGN1PyNLhQHzirJhcMKpgFIirNxN7tAUwYzQU4GupLughwAbuLY9CkGSloYIsDryX1+sh+F0hYwCz0kk6EdaOQIdBbB3nlaBF2R/PDZr7aZ1AaWBg5RD5GA8ID92rcFRv1ld/bHaEIBZhoII5MJHNjiRPoBOQK+sU8mm6jvPdSnAP+TG3+ncRM+Bzr7Gu5Hf9LWrx0jQsd2AhwWK9KiYAAmv1oZFNcT1VM5QETGbGIIDGEK7KIaigHdnzJ0fwDuLZbm693e+dqhsglgilMBeXWFNHTtqTgBlMly6oq1h/756cUVGzt7PPDeTmo68l6VXJBsRMTI4G8po3Z1uAiCJ6UIIHfIZCnCnsed6LiGTRQeDPAge70+giHulafLIKImEv2L91v2ymUo+QXu8e1AtVZygPCYZFguDXXTemWLKOGWoInQzfNgZ5NUwgcmJOxwHLyaKyJJQVed+G+zB1Y3cB/Z9YI3d5E5znSAQMgFbOpcRRFCfCfQCDaXrO9x2ml4AVg2jy1IWQTCoxK98JAGsde2kwedViXCEzVVj5IbkATfHdJhLlyqmgN2BdQMuemSABaov8j/8KMstYlLPsgw1ABsctp89BGMm0FQBy+8wkitCo0UqmKXNcAIDeArfNzbjCsvQ08jcRZa2JWjc6IB6BiQQj2OZlDDQKku9OY5IBALP1kqYh8CwcLVAYyYbRcXlJIa1r4jcAFQO9Jqhfm0ZHZ0AbnHL3eQsjQ8emMfC4C2wpM1wJIDjMuyCJBZR49U2X9UtOBwLgKyjl/R2jaV9P1gHIwweCtHrZeVQBPnxagDnAh73ZuoEP6nyIzvcCpA9Yw8FkC0waZ1a6nwigGZKKA+8rRbCAg01j83XsHw7NXOA+40LCwEcO0nEYMH6WANrbsGoWuzBFogR6hBRoTtnhIMPjUeU2fotqJgRT+ogA9qGsEjH9NnpbpecQMEjWQms8jhjMmKEUKQR54MRwg0RG9n3jWTkp26oC+IRbAoQt60Yoz5KWNSlvZnPDw7oFm1XjajlES7QVzlmhnDDyUn7i+AT6IYoDQx4EFGBANFphpP4NI0uLnQNFLnwsclARBwHV1iIcG18bCbipKpOBMBXGXgnmq8YPgAQoUBrBRfYlKEA9SwjxKf2iB4IktNwNjHQAR1D0iWhQM1hAViybafEWEpmjL1J8Pf31dXL1bVTEp7BcEt3lpIShjEcQVO0C0kAAKCh3lJPFtcCt6DlzCSPqbfn+T3l8oy9ERlCeFxdQQO/oJ7O6QSmRiAdJ2UweBWjf1PuViV0u+CaheUJgQCRMmzFJQSQf3amP5ObIEyj3QubQ2OT4fgasTERmiBCjevTrMCQ6RcU4+t6qx4bhAEVLNCzKC6/hS0jQ3mH0YsfM8ehTUIhU2p0n9Fe/x4CPCagIHzQjlmA4DijyahPoX8t7HCLKvzucMfCAKO1UvOddNS20NEFvFbjjEbTUTSOqBFI7KEjIiaQlm/UXIkAXJ6k9Nhy8rZeRBttyWEi9IMTolN/191pti8kLDEAKrZ2m6ZoB/k4Fi2ktCwILLRcMNjMCy0/cYPQxS3bpU7RS8rE/yw1aeukqQ69ww0wXoK/ux0ixRNYsztaLrlAJS1fEpOxJSYIl3k4Ntxdx0ZcMSDJnzk4JOqQkIMyNnvNhhDcrc0uTT5RZ1gSE6/1LjFZUjOpnOG10+pAYVa8a8I42loPTduG8rFtOyBp6Gmdzm3LQsySjxyxEugkDUNGvk3NWnKqJWVGzrY+wcIgT73zicWwU4t2SYIV7G67TWYvSz1OUAUH6QJIqoB+LTl9j/Q8NxyS3NSd8GJUoE7LAviuwMkR7AnKCuTpw2mh4KR2xVKdk1ks0OAcJD3/mQUKlBUHTf8oMpNxmp2elkHmjt1t6db7WGunz77rSCS29gOL5izFYNlftiUa9kilVGnO8tJzl2ckNpK1E46Os9CzpXwEVBfb8lRD3vxzV6RizcCzx+tZpPIXVOmWTJhd6r3fP3wVeEXk8m0g7PGHXZnuXbMApmhjr8/VNk6UK9uLMRqERGkY2Y8LDYxJpJiW1Sitn8p0vxGM6AKg961QeUFjolWn61K27/0FH9FMmCULRq0u7BUqEY+W4attqfaSQiGWHNoUCesz9gKRp1aqZUoWUs7pcb9YLSJIsZoB6RIVwM913dYQLtg0+iA8k4x0jFK2f7VXrG7l+qWnxCbXBV8Y3Z1u5nB3XuCTjGCiANhrKdd79VSu3zYsShu0YIKfL3CEigG/VBF9gjnvqPWYVhkoAJmUGQ4bFtuWjcHICXsa3Vluen5fRz3n57yezZynhqLkKraMnlN4hy2bbdPKMlKNlUHkyyv2UMroY9oLQxxAMrRXPcf+oGnV2nba5za/g5I023bHSZ3/hNV7jHaAl+5RQs2YgYrGKNOZDAV7bbulcWkcMjY0t4EGUWr7Rx2iTyji09Lt3vNzAyJrwabKtjEU/H7Uut0QAUZ6CWpFrGMdgAEmEKC+eukQjzRpzSEEsAjB2VAZBDtt3SIgPOoFjpbm9T4/jjqi9hDiJf0CdsXQndx7b3JL83qmEdSsH840r99uJyg054fY3Vvvd68VpgI9JwU/BlHYXkz1wJ0Pe9cZUAc7jyDjSK5fnWnf/8gJChFBBhh089v9+RE06MwI/pbih54+VU6R7TfvJRvCwDUHGAJMo9rh27dvnhGAkNwCo2KFftqXAFM7KMgZVLr9GaAT0h2hfVKDelKZa2MxMCSZptkAe54fYgmjTPzI7Ik7TK44H5k5QGwxu2z2NIEOMid6MUtKwnMUAnixugwMRCHObEH4dIwnkJdCAgtfhDAyxrM+lID8ECNeaJQm+EXThOcgKZ4MIyqJg7THIYhjPLzEK7djPC8+MMhU0FateFQ+oT6hR4NRGcEMC/plK3jEAXMfhgnnsYkyo0ZHkiN90NqsZZCpf26QqY1y9Rgk49CRXka5TslBQhPDSPe1p7XhSIGVASAVT/JqRzzDWMiTCrR+bpRrGWYb5yLBEmXMyh4IEvZw2i7E1IL3y8AUjzekeC50+Glahtk4l8Xg9JFhNhnnA4TnJoDMgbLX5/xnRKOBvRYCEMf5cOWmgg+O88lA4xgwREpzj/0sgCQVt4t6psdZNesaiQONych8HlTw+sMDjW2kM4oAgU3urTtiQlR9SnxGJ1w+difrMhmz6CycO/tyLMCL/4EzCGNrBA3zT7B4lJy4DxeLELUMtXIeWGopKDFi7s72r1dPY3QfHeuttgkw0n5pz125SAQM9gI/ZKyXE0Eyn+0vH+ttxxpksLnqNpWsl8Fm1qlh+MNHls98eqmEeW46C6wYyp9lPvWSwWaY6DLabYOMfMDnd6PdE8b6Ec6H4ZnFcZzBda0pg/YHT/zIhL61Mtrdl08cbpe5J0whGhluZ1Blve5uXWTebNgTY5DRch4yuOtkuL1yuH0EPiLbFO9bhttfXjzer/KIBNbIODDH+0FWrfPyTW2yn7P/MA5e4l9tuJ7j/cj/HHJt1PlJwKpM6OtPG+9vBxz65ZwCOGLyzTN4wGGIbGDCw+7aJD2fmPfr7QEHwHSC06EYz9aSXU4BfNIBByqBRzwaR/bo0EvqBirD8y4JE0HoiyAY8YgH7kG3qf02Ui+nQIjOrGMy3cPjP7y+f/bM1QcPuTyoGfG5R3ejEVZOxyo2FtiTZiVcDrmMdDXOupa+HXLh6iPJt5UWwOcdclm9+PN/AUmxHfMp3AOgshzzMTKAIsd8EnAyL8d8WHqwcswHiQdRZDSVx3zG/jUW+bxjPjzoNPcS+cUawDnQPMAonuHIKFIsdBkwE7McdOIw3AhxYCUzN4EsCU3HIX/eQSe53rWjXjhEJ7aAXuf2QBd8jiN8oVZOAmgZwhxRAMdAKhuCSsYzv/yoVzvsZsc2Lgu7htp7FrYHKcyw65OinMJiCZ7DQLmgHQZSheFzjyN4X3rYbbU97odBH67bczSVnX80s0UBkRIUJFuZTQg1wypYgAH/biNHX3zcTw488uDihi0FHnjUkuNAGTjwiIpC5b888GgHnoOkOmzrf737/uH+iw88Hhz5xEg7jnyytyJHKj0SCJGAByBhoC5yMKHfHvn85q889Prnmx9Wj9tDrzMcMYjCo0ZjAp08lq9xAjXISNru0OvbF+/f/4WHXp+O/WIekUN/WGZGS1mGD+TYL/RRcg9fkWO/X+Pk9e7g8+28PfgM1oRUdkxipipt3gX/9Q4+t6Pf3+wf/YaD6H8tR78zjn5Lkv+1jn4/HX7/+eDw+389tkpUspuvf/h9e/x/1Y7/v97cnBz///FTj///G4TXS9XmETm6AAAAAElFTkSuQmCC"; /* crest supplied by the analyst */
 const DEFSYS="4-2-3-1, 4-3-3, 4-4-2, 4-1-4-1, 4-4-1-1, 3-4-3, 3-5-2, 3-4-2-1, 5-3-2, 5-4-1";
-const SYSG={us:"Naš sustav",op:"Sustav suparnika"};
+const SYSG0={us:"Naš sustav",op:"Sustav suparnika"},SYSO={us:"Sustav suparnika",op:"Sustav protivnika"};
+const SYSG=new Proxy({},{get:(o,k)=>(S&&S.kind==="opp"?SYSO:SYSG0)[k]});
 const DEF_ROSTER="1 Luka Pršlja\n2 El Arabi Hilal Soudani\n3 Filip Markanović\n4 Leon Zeqiraj\n5 Tin Kulenović\n6 Lovro Dukić\n7 David Žabec\n8 Luka Jurak\n9 Medin Gashi\n10 Rafael Gomes Cirino\n10 Niko Jemin\n11 Jan Doležal\n12 Antonio Rajić\n13 Marin Vučković\n14 Filipe Jose Quissequel\n14 Lovro Renić\n15 Josip Bartulović\n16 Razmik Mayilyan Petrosyan\n17 Mauro Zalazar Martinez\n18 Tomislav Krizmanić\n19 Prosper Obiora Nwachukwu\n20 Đivo Pregelj\n23 Domagoj Begonja\n24 Malick Diop\n25 Sven Sopić\n51 Joshua Joel Marcel Ayobami T Nichols\n55 Ivan Graf\n88 Nikola Šunjić\nFilip Golem";
 /* Croatia A team, Bilić's wider list for the November 2026 Nations League games (no shirt numbers yet) */
 const CRO_ROSTER="Dominik Livaković\nDominik Kotarski\nKarlo Letica\nIvor Pandur\nJoško Gvardiol\nJosip Šutalo\nDuje Ćaleta-Car\nJosip Stanišić\nMarin Pongračić\nLuka Vušković\nIvan Smolčić\nŠimun Hrgović\nLuka Modrić\nMateo Kovačić\nMario Pašalić\nNikola Vlašić\nLovro Majer\nMartin Baturina\nPetar Sučić\nLuka Sučić\nKristijan Jakić\nToni Fruk\nJosip Mišić\nIvan Perišić\nAndrej Kramarić\nAnte Budimir\nMarco Pašalić\nIgor Matanović\nPetar Musa\nFranjo Ivanović\nDion Drena Beljo\nMarin Šotiček";
@@ -614,6 +624,31 @@ function defButtons(){
     b("Individualno","#c23f86",7,7,"","")
   ];
 }
+function oppButtons(){
+  const b=(name,color,lead,lag,group,labels)=>({id:defId(name),name,team:"",color,lead,lag,group,labels});
+  return[
+    b("BUILD UP","#009a00",0,0,"faza","Formacija: 4+1, 4+2, 3+1, 3+2, 2+3; Smjer: left, centre, right, direct; Golman: kratko, dugo; Ishod!: progression, fail"),
+    b("ORGANISATION","#3b95e0",0,0,"faza","Kanal: left, centre, right; Završetak: ubačaj, udarac, prodor, izgubljena; Ishod!: 3rd zone, fail"),
+    b("3rd ZONE","#f39c12",0,0,"faza","Završetak: ubačaj, udarac izvana, udarac iz kaznenog, prodor 1v1; Ishod!: finishing, retained, fail"),
+    b("PRESSING","#6a4bc8",0,0,"faza","Blok: high press, middle block, low zone; Okidač: povratna lopta, bočna linija, loš prijem, golman; Ishod!: +, -"),
+    b("tranzicija +","#11a3a3",0,0,"faza","Put: kontra, duga lopta, zadržavanje; Ishod!: +, -"),
+    b("tranzicija -","#d23c3c",0,0,"faza","Reakcija: protupresing, povlačenje, taktički prekršaj; Ishod!: +, -"),
+    b("PREKIDI napad","#8a6d4b",3,20,"","Vrsta: korner, sl udarac, aut, 11m; Izvedba: bliža stativa, daleka stativa, kratko, direktno; Ishod!: udarac, gol, obrana"),
+    b("PREKIDI obrana","#5f6b7a",3,20,"","Vrsta: korner, sl udarac; Postavka: zonska, individualna, kombinirana; Ishod!: +, -"),
+    b("Ključni igrač","#c23f86",7,7,"","")
+  ];
+}
+const isScout=()=>S.kind==="opp";
+const oppKey=()=>"opp:"+String(S.home||"").toLowerCase().replace(/đ/g,"d").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/^\s*(nk|hnk|gnk|snk)\s+/,"").replace(/\s+/g," ").trim();
+/* prebacivanje između naše utakmice i skautinga: svaka vrsta ima svoje gumbe i popis igrača */
+function applyKind(k){k=k==="opp"?"opp":"our";const cur=S.kind==="opp"?"opp":"our";
+  if(!S.tpl)S.tpl={};if(!S.rosters)S.rosters={};
+  if(cur!==k){S.tpl[cur]=S.buttons;
+    if(cur==="our")S.rosters[S.team]=S.roster;else if(S.home)S.rosters[oppKey()]=S.roster;
+    S.buttons=S.tpl[k]||(k==="opp"?oppButtons():defButtons())}
+  S.kind=k;
+  if(k==="opp"){if(S.home===DEF_HOME||S.home===(TEAMS[S.team]||{}).name)S.home="";S.roster=(S.home&&S.rosters[oppKey()])||""}
+  else{if(!S.home)S.home=(TEAMS[S.team]||TEAMS.kust).name;S.roster=S.rosters[S.team]||(TEAMS[S.team]||TEAMS.kust).roster}}
 const MOMS={pos:"U posjedu",obr:"Bez lopte",tra:"Tranzicije",pre:"Prekidi i ostalo"};
 const DEFMOM={"BUILD UP":"pos","ORGANISATION":"pos","3rd ZONE":"pos","FAZA OBRANE":"obr","tranzicija +":"tra","tranzicija -":"tra"};
 const momOf=b=>MOMS[b.mom]?b.mom:DEFMOM[b.name]||(/tranz/i.test(b.name)?"tra":/obran|press|blok/i.test(b.name)?"obr":"pre");
@@ -659,7 +694,7 @@ S.buttons.forEach(b=>{if(b.name==="Individualno"&&+b.lead===5&&+b.lag===5){b.lea
     if(i.bid==="d-tranzicija-")i.bid=b.id;if(String(i.color).toLowerCase()===OLD&&NEW[b.name])i.color=b.color});})();
 let ARCH=lsGet(AKEY,[]);if(!Array.isArray(ARCH))ARCH=[];
 let DEV=lsGet(DKEY,{name:""});
-function save(){if(S.rosters)S.rosters[S.team]=S.roster;lsSet(KEY,S);sync();backupSoon()}
+function save(){if(S.rosters){if(isScout()){if(S.home)S.rosters[oppKey()]=S.roster}else S.rosters[S.team]=S.roster}lsSet(KEY,S);sync();backupSoon()}
 
 /* clocks */
 function mnow(){let e=S.elapsed[S.half-1];if(S.running&&S.startedAt)e+=(Date.now()-S.startedAt)/1000;return Math.max(0,Math.floor(e))}
@@ -675,7 +710,7 @@ function fg(hex){const m=/^#?([0-9a-f]{6})$/i.exec(hex||"");if(!m)return"#fff";c
 
 let toastT;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,1900)}
 
-function keepSettings(n){n.buttons=S.buttons;n.labelsText=S.labelsText;n.roster=S.roster;n.rosters=S.rosters;n.team=S.team;n.crests=S.crests;n.home=(TEAMS[S.team]||TEAMS.kust).name;n.showZone=S.showZone;n.zones=S.zones;n.sysList=S.sysList;n.sys={us:(S.sys&&S.sys.us)||"",op:""};return n}
+function keepSettings(n){n.kind=S.kind||"our";n.tpl=S.tpl;n.buttons=S.buttons;n.labelsText=S.labelsText;n.roster=S.roster;n.rosters=S.rosters;n.team=S.team;n.crests=S.crests;n.home=isScout()?"":(TEAMS[S.team]||TEAMS.kust).name;n.showZone=S.showZone;n.zones=S.zones;n.sysList=S.sysList;n.sys={us:(S.sys&&S.sys.us)||"",op:""};return n}
 function leaveSample(){if(!S.sample)return;const n=keepSettings(blankMatch());n.home=S.home;n.away=S.away==="NK Rudeš"?"Gosti":S.away;S=n}
 /* instances belong to a button by id, or by name+team (a colleague's phone has its own button ids) */
 const isOf=(i,b)=>i.bid===b.id||(i.name===b.name&&(i.team||"")===(b.team||""));
@@ -709,11 +744,12 @@ const goals=t=>S.inst.filter(i=>i.bid===GOAL[t]||(i.name==="Gol"&&i.team===t)).l
 
 /* render */
 function renderBoard(){
-  if(document.activeElement!==$("nameH"))$("nameH").value=S.home;
+  if(document.activeElement!==$("nameH"))$("nameH").value=S.home;$("nameH").placeholder=isScout()?"Koga skautiraš":"";document.body.classList.toggle("scout",isScout());
+  $("tagH").lastChild.textContent=isScout()?"Skautiramo":"Domaći";$("tagA").firstChild.textContent=isScout()?"Protivnik":"Gosti";
   const opp=S.away==="Gosti"?"":S.away;
   if(document.activeElement!==$("nameA"))$("nameA").value=opp;$("nameA").classList.toggle("empty",!opp);
   if(document.activeElement!==$("oppIn"))$("oppIn").value=opp;
-  const cr=S.crests&&S.crests[S.team];for(const id of ["crestH","crestPrev"]){const im=$(id);if(cr){im.src=cr;im.hidden=false}else{im.hidden=true;im.removeAttribute("src")}}
+  const cr=!isScout()&&S.crests&&S.crests[S.team];for(const id of ["crestH","crestPrev"]){const im=$(id);if(cr){im.src=cr;im.hidden=false}else{im.hidden=true;im.removeAttribute("src")}}
   $("crestAdd").textContent=cr?"Promijeni grb":"Dodaj grb";$("crestDel").hidden=!cr;
   const seen=new Set();$("oppList").innerHTML=ARCH.concat((typeof BK!=="undefined"&&BK.cloud)||[]).map(m=>m.away).filter(a=>a&&a!=="Gosti"&&!seen.has(a)&&seen.add(a)).map(a=>`<option value="${esc(a)}">`).join("");
   $("scH").textContent=goals("h");$("scA").textContent=goals("a");
@@ -776,8 +812,8 @@ function renderZone(){
 let SYSOPEN=null;
 const sysList=()=>String(S.sysList||"").split(",").map(x=>x.trim()).filter(Boolean);
 function renderSys(){const el=$("sys");const sy=S.sys||{};
-  if(SYSOPEN){const k=SYSOPEN;el.innerHTML=`<span class="gn">${k==="us"?"Mi · "+esc(S.home):"Suparnik · "+esc(teamName("a"))}</span><div class="sysc">${sysList().map(x=>`<button class="lb" data-sys="${esc(x)}" aria-pressed="${sy[k]===x}">${esc(x)}</button>`).join("")}<button class="lb" data-sys="" aria-pressed="false" aria-label="Bez sustava">–</button></div>`;return}
-  el.innerHTML=["us","op"].map(k=>`<button class="sysb${k==="op"?" op":""}" data-sk="${k}"><span class="gn">${k==="us"?"Mi":"Suparnik"}</span>${sy[k]?`<b>${esc(sy[k])}</b>`:`<b class="none">Odaberi sustav</b>`}</button>`).join("")}
+  if(SYSOPEN){const k=SYSOPEN;el.innerHTML=`<span class="gn">${k==="us"?(isScout()?"Skautiramo · ":"Mi · ")+esc(S.home):(isScout()?"Protivnik · ":"Suparnik · ")+esc(teamName("a"))}</span><div class="sysc">${sysList().map(x=>`<button class="lb" data-sys="${esc(x)}" aria-pressed="${sy[k]===x}">${esc(x)}</button>`).join("")}<button class="lb" data-sys="" aria-pressed="false" aria-label="Bez sustava">–</button></div>`;return}
+  el.innerHTML=["us","op"].map(k=>`<button class="sysb${k==="op"?" op":""}" data-sk="${k}"><span class="gn">${k==="us"?(isScout()?"Skautiramo":"Mi"):(isScout()?"Protivnik":"Suparnik")}</span>${sy[k]?`<b>${esc(sy[k])}</b>`:`<b class="none">Odaberi sustav</b>`}</button>`).join("")}
 $("sys").addEventListener("click",e=>{const o=e.target.closest("[data-sk]");if(o){SYSOPEN=o.dataset.sk;renderSys();return}
   const c=e.target.closest("[data-sys]");if(!c||!SYSOPEN)return;const k=SYSOPEN,v=c.dataset.sys;SYSOPEN=null;leaveSample();
   if(!S.sys)S.sys={us:"",op:""};S.sys[k]=v;
@@ -864,7 +900,7 @@ function renderCtx(){const el=$("ctx");const t=curTarget();
     gs.map(g=>`<div class="lrow"><span class="gn">${esc(g.group)}${g.end?" · zatvara":""}</span>${g.items.map(x=>lbtn(g,x,t,b.id,t.id)).join("")}</div>`).join("");
   if(CTXID!==t.id){CTXID=t.id;if(document.body.classList.contains("mm")&&window.scrollY>0)window.scrollTo({top:0})}}
 function renderLive(){renderBoard();renderCtx();renderCW();renderLiveLine();renderTarget();renderZone();renderGen();renderStrip();renderTL();renderMX();renderArch()}
-function renderAll(){renderLive();renderED()}
+function renderAll(){renderLive();renderED();renderKind()}
 
 /* actions */
 function newInst(b,t,team){
@@ -966,8 +1002,10 @@ function setHalf(h){if(S.half===h)return;if(S.running){S.elapsed[S.half-1]=mnow(
   S.half=h;save();renderLive();if(n)toast("Zatvoreno otvorenih: "+n)}
 $("h1").onclick=()=>setHalf(1);$("h2").onclick=()=>setHalf(2);
 let nameT;const nameSave=()=>{clearTimeout(nameT);nameT=setTimeout(()=>{save();renderLive()},600)};
-$("nameH").oninput=e=>{S.home=e.target.value||DEF_HOME;lsSet(KEY,S);nameSave()};
+$("nameH").oninput=e=>{if(isScout()){S.home=e.target.value.trim();lsSet(KEY,S);nameSave();return}S.home=e.target.value||DEF_HOME;lsSet(KEY,S);nameSave()};
 $("nameA").oninput=e=>{S.away=e.target.value.trim()||"Gosti";e.target.classList.toggle("empty",!e.target.value.trim());lsSet(KEY,S);nameSave()};
+$("nameH").addEventListener("change",()=>{if(!isScout())return;const c=oppCanon(S.home);if(c&&c!==S.home){S.home=c;$("nameH").value=c}
+  S.roster=(S.home&&S.rosters[oppKey()])||S.roster||"";if(S.home)oppRemember(S.home);save();renderAll()});
 $("oppIn").oninput=e=>{S.away=e.target.value.trim()||"Gosti";lsSet(KEY,S);nameSave()};
 /* suparnici: odabir s popisa ranijih, ista imena kroz Tag, Studio i Bazu */
 const OKEY="terenTagger.opps";
@@ -1137,7 +1175,7 @@ $("cloud").addEventListener("click",async e=>{
   const find=id=>(BK.cloud||[]).find(m=>m.mid===id);
   if(o){const m=find(o.dataset.copen);if(!m)return;const r=archiveCurrent();if(r===null)return;coLeave(true);
     ARCH=ARCH.filter(a=>a.mid!==m.mid);lsSet(AKEY,ARCH);
-    useTeam(m.team);S=Object.assign(keepSettings(blankMatch()),{mid:m.mid,home:m.home,away:m.away,inst:m.inst,sessionStart:m.sessionStart,videoOffset:m.videoOffset||0,h2:m.h2||null,elapsed:m.elapsed||[0,0],half:m.half||1,ended:m.ended||null,kicks:m.kicks||null});
+    useTeam(m.team);S=Object.assign(keepSettings(blankMatch()),{mid:m.mid,away:m.away,inst:m.inst,sessionStart:m.sessionStart,videoOffset:m.videoOffset||0,h2:m.h2||null,elapsed:m.elapsed||[0,0],half:m.half||1,ended:m.ended||null,kicks:m.kicks||null});applyKind(m.kind||"our");S.home=m.home;if(isScout())S.roster=S.rosters[oppKey()]||"";
     BK.last=JSON.stringify(matchDoc(S));lsSet(KEY,S);renderAll();renderCloud();toast("Otvoreno s računa: "+summaryLine(S))}
   if(x){const m=find(x.dataset.cxml);if(m)exportMatch(m)}
   if(d){cloudDel=d.dataset.cdel;const m=find(cloudDel);$("cloudConfirmText").textContent=`Obrisati kopiju "${summaryLine(m)}" s računa? Kopija na ovom mobitelu ostaje ako postoji.`;$("cloudConfirm").hidden=false}
@@ -1149,7 +1187,7 @@ $("cloudYes").onclick=async()=>{const id=cloudDel;cloudDel=null;$("cloudConfirm"
 /* matches archive */
 function archiveCurrent(){if(S.sample||!S.inst.length)return false;
   S.inst.filter(i=>i.end==null).map(i=>[i,openEnd(S,i)]).forEach(([i,t])=>closeInst(i,t));lsSet(KEY,S);backupNow();
-  const m={team:S.team,mid:S.mid,home:S.home,away:S.away,inst:S.inst,sessionStart:S.sessionStart,videoOffset:S.videoOffset,h2:S.h2||null,elapsed:S.elapsed,half:S.half,ended:S.ended||null,kicks:S.kicks||null,savedAt:Date.now()};
+  const m={kind:S.kind||"our",team:S.team,mid:S.mid,home:S.home,away:S.away,inst:S.inst,sessionStart:S.sessionStart,videoOffset:S.videoOffset,h2:S.h2||null,elapsed:S.elapsed,half:S.half,ended:S.ended||null,kicks:S.kicks||null,savedAt:Date.now()};
   ARCH=ARCH.filter(a=>a.mid!==m.mid);ARCH.push(m);
   const r=lsSet(AKEY,ARCH);
   if(r===false){ARCH=ARCH.filter(a=>a.mid!==m.mid);lsSet(AKEY,ARCH);toast("Nema mjesta za spremanje. Obriši staru utakmicu.");return null}
@@ -1161,7 +1199,7 @@ $("arch").addEventListener("click",e=>{
   const o=e.target.closest("[data-open]"),x=e.target.closest("[data-xml]"),d=e.target.closest("[data-delm]");
   if(o){const m=ARCH.find(a=>a.mid===o.dataset.open);if(!m)return;const r=archiveCurrent();if(r===null)return;coLeave(true);
     ARCH=ARCH.filter(a=>a.mid!==m.mid);lsSet(AKEY,ARCH);
-    useTeam(m.team);S=Object.assign(keepSettings(blankMatch()),{mid:m.mid,home:m.home,away:m.away,inst:m.inst,sessionStart:m.sessionStart,videoOffset:m.videoOffset||0,h2:m.h2||null,elapsed:m.elapsed||[0,0],half:m.half||1,ended:m.ended||null,kicks:m.kicks||null});
+    useTeam(m.team);S=Object.assign(keepSettings(blankMatch()),{mid:m.mid,away:m.away,inst:m.inst,sessionStart:m.sessionStart,videoOffset:m.videoOffset||0,h2:m.h2||null,elapsed:m.elapsed||[0,0],half:m.half||1,ended:m.ended||null,kicks:m.kicks||null});applyKind(m.kind||"our");S.home=m.home;if(isScout())S.roster=S.rosters[oppKey()]||"";
     save();renderAll();toast("Otvoreno: "+summaryLine(S))}
   if(x){const m=ARCH.find(a=>a.mid===x.dataset.xml);if(!m)return;exportMatch(m)}
   if(d){pendingDel=d.dataset.delm;const m=ARCH.find(a=>a.mid===pendingDel);$("archConfirmText").textContent=`Obrisati "${summaryLine(m)}"? Ne može se vratiti.`;$("archConfirm").hidden=false}
@@ -1199,7 +1237,7 @@ function xml(M){
   const st=d=>{const o=-d.getTimezoneOffset(),a=Math.abs(o);return`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(Math.floor(d.getMilliseconds()/10))} ${o<0?"-":"+"}${pad(Math.floor(a/60))}${pad(a%60)}`};
   const sh=shiftFn(M);
   const list=M.inst.filter(exFilter).sort((a,b)=>a.start-b.start);
-  const halves=$("exHalves").checked?halfInst(M):[];
+  const halves=($("exHalves").checked?halfInst(M):[]).concat(M.kind==="opp"&&M.home?[{_half:true,start:0,end:1,name:"Skauting: "+M.home,color:"#c2aa78",labels:[{group:"Utakmica",text:M.home+" - "+M.away}]}]:[]);
   const inst=list.concat(halves).sort((a,b)=>a.start-b.start).map((i,k)=>`  <instance>\n    <ID>${k+1}</ID>\n    <start>${i._half?i.start.toFixed(2):Math.max(0,i.start+sh(i)).toFixed(2)}</start>\n    <end>${i._half?Math.max(0,i.end).toFixed(2):Math.max(0,(i.end==null?openEnd(M,i):i.end)+sh(i)).toFixed(2)}</end>\n    <code>${x(cn(i))}</code>\n${i.labels.filter(l=>$("exSys").checked||(l.group!==SYSG.us&&l.group!==SYSG.op)).map(l=>`    <label>\n      <group>${x(l.group)}</group>\n      <text>${x(l.text)}</text>\n    </label>\n`).join("")}${i.note?`    <free_text>${x(i.note)}</free_text>\n`:""}  </instance>`).join("\n");
   halves.forEach(h=>addRowLater.push(h));
   const rows=[];const seen=new Set();
@@ -1374,7 +1412,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.08f",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.08g",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
@@ -1406,7 +1444,7 @@ if("serviceWorker" in navigator&&location.protocol==="https:"&&window.top===wind
 saMode();setTimeout(saMode,5500);
 /* ---------- Pauza: sažetak za trenera ---------- */
 let HTP=null;
-const htFail=x=>/^(fail|-|−|neuspje|izgubljen|lost)/i.test(String(x).trim());
+const htFail=x=>/^(fail|-|−|neuspje|izgubljen|lost|obrana$)/i.test(String(x).trim());
 const htOutGroups=b=>btnGroups(b).filter(g=>g.end||/^(ishod|ocjena)$/i.test(g.group));
 function htPeriod(){const p=HTP||(S.half===2?"h2":"h1");return p}
 function htList(p){const L=S.inst.filter(i=>i.bid!==GOAL.h&&i.bid!==GOAL.a&&i.name!=="Gol");
@@ -1451,6 +1489,12 @@ $("htSeg").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(
 $("htShare").onclick=async()=>{const t=htText();
   if(navigator.share&&/iPhone|iPad|Android/i.test(navigator.userAgent)){try{await navigator.share({text:t});return}catch(e){if(e&&e.name==="AbortError")return}}
   copy(t,"Sažetak")};
+function renderKind(){document.querySelectorAll("#kindSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===(S.kind==="opp"?"opp":"our")))}
+$("kindSeg").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(!b)return;const k=b.dataset.k;if(k===(S.kind==="opp"?"opp":"our"))return;
+  leaveSample();let saved=false;if(S.inst.length){const r=archiveCurrent();if(r===null)return;saved=!!r;coLeave(true)}
+  S=keepSettings(blankMatch());applyKind(k);save();renderAll();renderKind();
+  toast((k==="opp"?"Skauting suparnika":"Naša utakmica")+(saved?" · prethodna utakmica spremljena u arhivu":"")+(k==="opp"?". Upiši koga skautiraš.":""))});
+renderKind();
 let lock=null;async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.running)wake();if(document.visibilityState==="hidden")backupNow()});
 setInterval(()=>{if(S.running||S.inst.some(i=>i.end==null))tick()},500);
