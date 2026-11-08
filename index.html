@@ -3,7 +3,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="https://jaskoosmanovic.github.io/3rdman-tag/tag-ikona-180.png">
 <link rel="icon" type="image/png" href="https://jaskoosmanovic.github.io/3rdman-tag/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="3rd Man Tag"><meta name="theme-color" content="#1c181b"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="3rd Man Tag"><meta name="theme-color" content="#1c181b"><meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
@@ -320,8 +320,8 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
 .zsz{display:flex;gap:4px;text-transform:none;letter-spacing:0}
 .zsz button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:2px 12px;font-size:13px;font-weight:700;min-height:32px;min-width:40px}
 .zsz button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-/* puna traka ispod sata i baterije (iPhone inače tamo mutno prikazuje sadržaj) */
-body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--pitch);z-index:50;pointer-events:none}
+/* iznad i ispod stranice (povlačenje) tamna boja, ne bijela */
+html{background:#1c181b}
 body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!important}
 .ver{margin-top:22px;font-size:12px;opacity:.6;font-family:var(--f-mono)}
 </style>
@@ -476,7 +476,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08b</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08c</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -1317,7 +1317,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.08b",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.08c",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
