@@ -460,6 +460,8 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span class="pill off" id="bkStatus"><i></i>Provjeravam…</span>
       <p id="bkInfo">Svaka utakmica se automatski sprema na tvoj Claude račun, nekoliko sekundi nakon svakog tapa. Kopiju vidiš samo ti i možeš je otvoriti s bilo kojeg uređaja.</p>
       <div class="bar" id="bkBar" hidden><button class="ghost" id="bkLoad">Prikaži utakmice s računa</button><button class="ghost" id="bkNow">Spremi sada</button></div>
+      <p style="margin-top:12px">Za samostalni 3rd Man Tag (ikona na početnom zaslonu): spremi sve utakmice odavde u jednu datoteku, pa je tamo otvori gumbom <b>Vrati arhivu</b>.</p>
+      <div class="bar"><button class="primary" id="bkExport">Prenesi sve utakmice u samostalni Tag</button></div>
       <ul class="arch" id="cloud" hidden></ul>
       <div class="confirm" id="cloudConfirm" hidden>
         <span id="cloudConfirmText"></span>
@@ -476,7 +478,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08c</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08d</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -1317,17 +1319,23 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.08c",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.08d",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
   const d=new Date(t),days=Math.floor((Date.now()-t)/864e5);el.className="pill"+(days>7?" off":"");
   el.lastChild.textContent="Zadnja kopija "+d.getDate()+". "+(d.getMonth()+1)+". u "+pad(d.getHours())+":"+pad(d.getMinutes())+(days>7?" · starija od tjedan dana":"")}
 function settingsOf(){const k=keepSettings({});delete k.home;return k}
-$("saBkSave").onclick=async()=>{const cur=S.inst.length&&!S.sample?S:null;
-  const doc={app:"3rd Man Tag",kind:"arhiva",v:1,ver:VER,savedAt:Date.now(),current:cur,archive:ARCH,settings:settingsOf()};
-  const d=new Date();const ok=await saveFile(`3rdManTag-arhiva_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`,JSON.stringify(doc),"Arhiva");
-  if(ok){lsSet(BKKEY,Date.now());saBkStatus()}};
+function archFile(extra){const cur=S.inst.length&&!S.sample?S:null;let list=ARCH.slice();
+  for(const m of extra||[]){if(!m||!m.mid||!Array.isArray(m.inst)||!m.inst.length||(cur&&m.mid===cur.mid))continue;const k=list.findIndex(a=>a.mid===m.mid);if(k<0)list.push(m);else if((m.savedAt||0)>(list[k].savedAt||0))list[k]=m}
+  const doc={app:"3rd Man Tag",kind:"arhiva",v:1,ver:VER,savedAt:Date.now(),current:cur,archive:list,settings:settingsOf()};
+  const d=new Date();return{name:`3rdManTag-arhiva_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`,text:JSON.stringify(doc),n:list.length+(cur?1:0)}}
+$("saBkSave").onclick=async()=>{const f=archFile();const ok=await saveFile(f.name,f.text,"Arhiva");if(ok){lsSet(BKKEY,Date.now());saBkStatus()}};
+$("bkExport").onclick=async()=>{let cloud=[];
+  if(DB&&UID){toast("Skupljam utakmice s računa…");try{const q=await DB.collection("data/users/"+UID).get();cloud=q.docs.filter(d=>d.id.startsWith("m-")).map(d=>JSON.parse(JSON.stringify(d.data())))}catch(e){toast("Račun nije dostupan, prenosim utakmice s ovog uređaja")}}
+  const f=archFile(cloud);if(!f.n)return toast("Nema utakmica za prijenos");
+  if(!DL&&!isSA())return toast("Spremanje datoteke ovdje nije dostupno");
+  const ok=await saveFile(f.name,f.text,"Arhiva");if(ok)toast("Spremljeno: "+f.n+" utakmica. U samostalnom Tagu: Utakmice → Vrati arhivu.")};
 $("saBkLoad").onclick=()=>{$("saBkIn").value="";$("saBkIn").click()};
 $("saBkIn").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;let doc;
   try{doc=JSON.parse(await f.text())}catch(x){return toast("To nije arhiva 3rd Man Taga")}
