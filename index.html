@@ -324,6 +324,33 @@ body[data-zs="m"] .pitchwrap{aspect-ratio:auto;height:170px}
 html{background:#1c181b}
 .opick{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;padding:8px 0 2px}
 .opick button{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(179,155,108,.55);border-radius:6px;padding:9px 13px;font:600 16px var(--f-body);min-height:42px}
+/* Pauza: sažetak za trenera */
+.ht .htbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ht .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.ht .seg button{border:0;background:var(--surface);color:var(--ink);padding:9px 11px;font:600 14px var(--f-body);min-height:40px}
+.ht .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.ht h4{margin:18px 0 8px;font:700 13px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ht .hhd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 14px;background:var(--pitch);color:#fff;border-radius:8px;border-bottom:3px solid var(--gold)}
+.ht .hhd b{font:800 22px var(--f-display);letter-spacing:.02em}.ht .hhd span{font:600 14px var(--f-mono);color:var(--gold)}
+.ht .ph{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center}
+.ht .ph .nm{display:flex;align-items:center;gap:8px;font:700 16px var(--f-display);text-transform:uppercase}
+.ht .ph .nm i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.ht .ph .n{font:700 18px var(--f-mono);text-align:right;min-width:28px}
+.ht .ob{height:10px;background:color-mix(in srgb,var(--line) 60%,transparent);border-radius:5px;overflow:hidden;position:relative}
+.ht .ob i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.ht .ph small{grid-column:2/4;margin-top:-4px;color:var(--muted);font:500 13px var(--f-body)}
+.ht .zg{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,64px);gap:3px;background:#2e7d4f;padding:3px;border-radius:6px;max-width:460px}
+.ht .zg div{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:700 20px var(--f-mono);border-radius:3px}
+.ht .zg div small{font:500 11px var(--f-body);opacity:.75}
+.ht .zcap{display:flex;justify-content:space-between;max-width:460px;font:600 11px var(--f-body);letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.ht .tp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ht .tp div{border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--surface)}
+.ht .tp b{display:block;font:700 22px var(--f-mono)}.ht .tp span{font:500 12px var(--f-body);color:var(--muted)}
+.ht .pl{display:flex;flex-wrap:wrap;gap:6px}.ht .pl span{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 11px;font:600 14px var(--f-body)}
+.ht .pl b{font-family:var(--f-mono);margin-left:6px;color:var(--gold)}
+.ht .km{list-style:none;margin:0;padding:0}.ht .km li{border-left:4px solid var(--c,#888);background:var(--surface);padding:9px 12px;margin-bottom:6px;border-radius:0 6px 6px 0}
+.ht .km .t{font:700 15px var(--f-mono)}.ht .km .c{font:700 15px var(--f-display);text-transform:uppercase;margin-left:8px}.ht .km .l{color:var(--muted);font-size:13px;margin-top:2px}.ht .km .nt{font-weight:600;margin-top:3px}
+.ht .empty{color:var(--muted);padding:20px 0}
 body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!important}
 .ver{margin-top:22px;font-size:12px;opacity:.6;font-family:var(--f-mono)}
 </style>
@@ -420,6 +447,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
 
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="tl">Tijek</button>
+    <button role="tab" aria-selected="false" data-tab="ht">Pauza</button>
     <button role="tab" aria-selected="false" data-tab="mx">Matrica</button>
     <button role="tab" aria-selected="false" data-tab="ut">Utakmice</button>
     <button role="tab" aria-selected="false" data-tab="ed">Gumbi</button>
@@ -430,6 +458,12 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
   <section class="panel" id="p-mx" hidden>
     <p class="lbl-s" style="margin:0">Kodovi × oznake. Broj instanci po kombinaciji.</p>
     <div class="mx" id="mx"></div>
+  </section>
+
+  <section class="panel ht" id="p-ht" hidden>
+    <div class="htbar"><div class="seg" id="htSeg"><button data-p="h1" aria-pressed="true">1. PV</button><button data-p="h2" aria-pressed="false">2. PV</button><button data-p="all" aria-pressed="false">Cijela</button><button data-p="last" aria-pressed="false">Zadnjih 15'</button></div>
+      <button class="ghost" id="htShare">Pošalji treneru</button></div>
+    <div id="htBody"></div>
   </section>
 
   <section class="panel set" id="p-ut" hidden>
@@ -481,7 +515,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08e</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08f</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -956,7 +990,7 @@ $("clearSample").onclick=()=>{leaveSample();save();renderAll();toast("Nova utakm
 
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
-  ["tl","mx","ut","ed","ex"].forEach(k=>$("p-"+k).hidden=k!==b.dataset.tab);if(b.dataset.tab==="ex")renderH2();
+  ["tl","ht","mx","ut","ed","ex"].forEach(k=>$("p-"+k).hidden=k!==b.dataset.tab);if(b.dataset.tab==="ex")renderH2();if(b.dataset.tab==="ht")renderHT();
 });
 
 /* editor */
@@ -1340,7 +1374,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.08e",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.08f",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
@@ -1370,6 +1404,53 @@ $("saBkIn").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)r
 if("serviceWorker" in navigator&&location.protocol==="https:"&&window.top===window&&/github\.io$/.test(location.hostname)){
   addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 saMode();setTimeout(saMode,5500);
+/* ---------- Pauza: sažetak za trenera ---------- */
+let HTP=null;
+const htFail=x=>/^(fail|-|−|neuspje|izgubljen|lost)/i.test(String(x).trim());
+const htOutGroups=b=>btnGroups(b).filter(g=>g.end||/^(ishod|ocjena)$/i.test(g.group));
+function htPeriod(){const p=HTP||(S.half===2?"h2":"h1");return p}
+function htList(p){const L=S.inst.filter(i=>i.bid!==GOAL.h&&i.bid!==GOAL.a&&i.name!=="Gol");
+  if(p==="h1")return L.filter(i=>(i.half||1)===1);if(p==="h2")return L.filter(i=>i.half===2);
+  if(p==="last"){const h=S.half||1,H=L.filter(i=>(i.half||1)===h);const mx=Math.max(0,...H.map(i=>i.msec||0));return H.filter(i=>(i.msec||0)>=mx-15*60)}
+  return L}
+function htData(p){const L=htList(p);
+  const phases=S.buttons.map(b=>{const l=L.filter(i=>isOf(i,b));if(!l.length)return null;
+    const og=htOutGroups(b);let ok=0,tot=0;const parts={};
+    l.forEach(i=>{const o=i.labels.find(x=>og.some(g=>g.group===x.group));if(o){tot++;if(!htFail(o.text))ok++;parts[o.text]=(parts[o.text]||0)+1}});
+    return{name:b.name,color:b.color,n:l.length,ok,tot,parts}}).filter(Boolean);
+  const zones={};L.forEach(i=>i.labels.filter(x=>x.group==="Zona").forEach(x=>{const z=parseInt(String(x.text).replace(/\D/g,""));if(z)zones[z]=(zones[z]||0)+1}));
+  const pls={};L.forEach(i=>i.labels.filter(x=>x.group==="Igrač").forEach(x=>{pls[x.text]=(pls[x.text]||0)+1}));
+  const tempo=[0,0,0];const hh=p==="h2"?2:1;L.filter(i=>(i.half||1)===hh).forEach(i=>{const m=(i.msec||0)/60;tempo[m<15?0:m<30?1:2]++});
+  const stars=L.filter(isStar).sort((a,b)=>(a.half||1)-(b.half||1)||(a.msec||0)-(b.msec||0));
+  return{L,phases,zones,pls,tempo,stars,hh}}
+const htLbl={h1:"1. poluvrijeme",h2:"2. poluvrijeme",all:"Cijela utakmica",last:"Zadnjih 15 minuta"};
+function htLabels(i){return i.labels.filter(l=>!["Igrač","Analiza","Zona"].includes(l.group)).map(l=>l.text).join(" · ")}
+function renderHT(){const p=htPeriod();document.querySelectorAll("#htSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===p));
+  const d=htData(p),el=$("htBody");
+  if(!d.L.length){el.innerHTML=`<div class="hhd"><b>${esc(summaryLine(S))}</b><span>${htLbl[p]}</span></div><p class="empty">Za ovo razdoblje još nema tagiranih akcija.</p>`;return}
+  const zmax=Math.max(1,...Object.values(d.zones)),ztot=Object.values(d.zones).reduce((a,b)=>a+b,0);
+  const zc=z=>{const n=d.zones[z]||0,a=n/zmax;return`<div style="background:rgba(179,155,108,${(0.12+a*0.78).toFixed(2)})">${n||"·"}<small>${ztot?Math.round(n/ztot*100)+" %":""}</small></div>`};
+  const zgrid=[1,3,5,7].map(z=>zc(z)).join("")+[2,4,6,8].map(z=>zc(z)).join("");
+  const pl=Object.entries(d.pls).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const tl=d.hh===2?["46–60'","61–75'","76–90'+"]:["1–15'","16–30'","31–45'+"];
+  el.innerHTML=`<div class="hhd"><b>${esc(summaryLine(S))}</b><span>${htLbl[p]} · ${d.L.length} akcija</span></div>
+  <h4>Faze i ishodi</h4><div class="ph">${d.phases.map(f=>`<span class="nm"><i style="background:${f.color}"></i>${esc(f.name)}</span>
+    <div class="ob">${f.tot?`<i style="width:${Math.round(f.ok/f.tot*100)}%"></i>`:""}</div><span class="n">${f.n}</span>
+    <small>${f.tot?`Uspješno ${f.ok}/${f.tot} (${Math.round(f.ok/f.tot*100)} %) · `+Object.entries(f.parts).map(([k,v])=>esc(k)+" "+v).join(", "):"Bez ishoda"}</small>`).join("")}</div>
+  ${p!=="all"&&p!=="last"?`<h4>Tempo kroz poluvrijeme</h4><div class="tp">${d.tempo.map((n,k)=>`<div><b>${n}</b><span>${tl[k]}</span></div>`).join("")}</div>`:""}
+  ${ztot?`<h4>Zone (${ztot})</h4><div class="zg">${zgrid}</div><div class="zcap"><span>Vlastiti gol</span><span>Napad →</span></div>`:""}
+  ${pl.length?`<h4>Igrači u akcijama</h4><div class="pl">${pl.map(([n,c])=>`<span>${esc(n)}<b>${c}</b></span>`).join("")}</div>`:""}
+  <h4>Ključni trenuci ★ (${d.stars.length})</h4>${d.stars.length?`<ul class="km">${d.stars.map(i=>`<li style="--c:${i.color||"#888"}"><span class="t">${minLbl(i.msec||0,i.half||1)}</span><span class="c">${esc(i.name)}</span>${htLabels(i)?`<div class="l">${esc(htLabels(i))}</div>`:""}${i.note?`<div class="nt">${esc(i.note)}</div>`:""}</li>`).join("")}</ul>`:`<p class="empty">Nema akcija označenih ★ za analizu.</p>`}`}
+function htText(){const p=htPeriod(),d=htData(p);let t=`${summaryLine(S)}\n${htLbl[p]} · ${d.L.length} akcija\n`;
+  d.phases.forEach(f=>{t+=`\n${f.name}: ${f.n}`+(f.tot?` · uspješno ${f.ok}/${f.tot} (${Math.round(f.ok/f.tot*100)} %)`:"")});
+  const zt=Object.values(d.zones).reduce((a,b)=>a+b,0);if(zt)t+="\n\nZone: "+[1,2,3,4,5,6,7,8].filter(z=>d.zones[z]).map(z=>`${z}: ${d.zones[z]}`).join(", ");
+  const pl=Object.entries(d.pls).sort((a,b)=>b[1]-a[1]).slice(0,6);if(pl.length)t+="\nIgrači: "+pl.map(([n,c])=>`${n} (${c})`).join(", ");
+  if(d.stars.length)t+="\n\nKljučni trenuci:\n"+d.stars.map(i=>`${minLbl(i.msec||0,i.half||1)} ${i.name}${htLabels(i)?" · "+htLabels(i):""}${i.note?" · "+i.note:""}`).join("\n");
+  return t}
+$("htSeg").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(!b)return;HTP=b.dataset.p;renderHT()});
+$("htShare").onclick=async()=>{const t=htText();
+  if(navigator.share&&/iPhone|iPad|Android/i.test(navigator.userAgent)){try{await navigator.share({text:t});return}catch(e){if(e&&e.name==="AbortError")return}}
+  copy(t,"Sažetak")};
 let lock=null;async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.running)wake();if(document.visibilityState==="hidden")backupNow()});
 setInterval(()=>{if(S.running||S.inst.some(i=>i.end==null))tick()},500);
