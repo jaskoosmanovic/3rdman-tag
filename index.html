@@ -536,7 +536,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09a</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09b</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -558,9 +558,9 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
     <textarea class="big" id="rosterText" spellcheck="false" placeholder="1 Ivić&#10;5 Kovač&#10;9 Horvat"></textarea>
     <div class="bar"><button class="primary" id="saveRoster">Spremi igrače</button><button class="ghost" id="defRoster">Vrati zadani popis</button></div>
     <h3>Prozor igrača</h3>
-    <p>Na glavnom zaslonu prekidač <b>Faze / Igrači</b>. U prozoru igrača svaki igrač s popisa je gumb: tap stvara akciju tog igrača (kod = igrač, oznaka Igrač), pa ispod biraš vrstu akcije, ishod i zonu.</p>
+    <p>Na glavnom zaslonu prekidač <b>Faze / Igrači</b>. U prozoru igrača svaki igrač s popisa je gumb: tap stvara isječak tog igrača (kod = igrač, oznaka Igrač). Oznake ispod su neobavezne: ako ih upišeš (npr. <code>Akcija: duel, udarac</code>), pojave se nakon tapa; prazno = samo video igrača.</p>
     <div class="row"><label class="lbl-s" for="indLead">Sekundi prije tapa</label><input type="number" id="indLead" min="0" max="30" style="width:70px"><label class="lbl-s" for="indLag">poslije</label><input type="number" id="indLag" min="1" max="30" style="width:70px"></div>
-    <textarea class="big" id="indLbl" spellcheck="false" style="min-height:70px"></textarea>
+    <textarea class="big" id="indLbl" spellcheck="false" style="min-height:70px" placeholder="prazno = samo video igrača"></textarea>
     <div class="bar"><button class="primary" id="saveInd">Spremi prozor igrača</button><button class="ghost" id="defInd">Zadano</button></div>
     <h3>Opće oznake</h3>
     <p>Oznake koje vrijede za bilo koji kod, idu na odabranu instancu. Jedna grupa po retku: <code>Grupa: oznaka, oznaka</code>. Može ostati prazno.</p>
@@ -732,7 +732,7 @@ function leaveSample(){if(!S.sample)return;const n=keepSettings(blankMatch());n.
 /* instances belong to a button by id, or by name+team (a colleague's phone has its own button ids) */
 const isOf=(i,b)=>i.bid===b.id||(i.name===b.name&&(i.team||"")===(b.team||""));
 /* prozor igrača: svaki igrač iz popisa je gumb; tag ima kod = igrač i oznaku Igrač (za Sportscode redak po igraču i za Studio/Skauting) */
-const IND_DEF={lead:6,lag:4,labels:"Akcija: dodavanje, primanje, duel, dribling, udarac, ubačaj, presing, oduzimanje, gubitak lopte, pozicija; Ishod: +, -"};
+const IND_DEF={lead:6,lag:4,labels:""};
 const indSet=()=>Object.assign({},IND_DEF,S.ind||{});
 function playerBtns(){const I=indSet(),col=isScout()?"#6a4bc8":"#b39b6c";return roster().map(p=>{const txt=plText(p);return{id:"p:"+txt,name:txt,team:"",color:col,lead:+I.lead||0,lag:Math.max(1,+I.lag||1),group:"",labels:I.labels,player:p}})}
 const ALLB=()=>S.buttons.concat(playerBtns());
@@ -893,7 +893,7 @@ function renderMX(){
   $("mx").innerHTML=h+"</tbody></table>";
 }
 function renderInd(){const I=indSet();if(document.activeElement!==$("indLead"))$("indLead").value=I.lead;if(document.activeElement!==$("indLag"))$("indLag").value=I.lag;if(document.activeElement!==$("indLbl"))$("indLbl").value=I.labels}
-$("saveInd").onclick=()=>{S.ind={lead:Math.max(0,Math.min(30,+$("indLead").value||0)),lag:Math.max(1,Math.min(30,+$("indLag").value||1)),labels:$("indLbl").value.trim()||IND_DEF.labels};save();renderAll();toast("Prozor igrača spremljen")};
+$("saveInd").onclick=()=>{S.ind={lead:Math.max(0,Math.min(30,+$("indLead").value||0)),lag:Math.max(1,Math.min(30,+$("indLag").value||1)),labels:$("indLbl").value.trim()};save();renderAll();toast("Prozor igrača spremljen")};
 $("defInd").onclick=()=>{S.ind=null;save();renderAll();toast("Prozor igrača: zadane postavke")};
 function renderED(){renderInd();
   $("edb").innerHTML=S.buttons.map((b,k)=>`<tr data-b="${b.id}">
@@ -936,7 +936,7 @@ function newInst(b,t,team){
   const inst={id:nid(),bid:b.id,name:b.name,team:team!=null?team:b.team,color:b.color,start:Math.max(0,t-(+b.lead||0)),end:b.lag?t+(+b.lag):null,half:S.half,msec:mnow(),labels:[],by:DEV.name||""};
   if(b.player)inst.labels.push({group:"Igrač",text:b.name});
   const p=$("pno").value.trim();if(p&&!b.player){inst.labels.push({group:"Igrač",text:playerText(p)});$("pno").value=""}
-  const sy=S.sys||{};["us","op"].forEach(k=>{if(sy[k])inst.labels.push({group:SYSG[k],text:sy[k]})});
+  const sy=S.sys||{};if(!b.player)["us","op"].forEach(k=>{if(sy[k])inst.labels.push({group:SYSG[k],text:sy[k]})});
   S.inst.push(inst);S.created.push(inst.id);if(S.created.length>200)S.created.shift();S.target=inst.id;return inst;
 }
 $("cw").addEventListener("click",e=>{
@@ -1443,7 +1443,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.09a",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.09b",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
