@@ -537,7 +537,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09d</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09e</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -590,7 +590,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
     <div class="row"><label class="lbl-s"><input type="checkbox" id="exSys"> Izvezi i sustave igre kao oznake</label></div>
     <div class="row"><label class="lbl-s"><input type="checkbox" id="exHalves" checked> Dodaj retke 1. i 2. poluvrijeme (3rd Man Studio po njima sama usklađuje video)</label></div>
     <div class="row"><label class="lbl-s" for="exPl">Samo akcije igrača</label><select id="exPl" style="padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);max-width:100%"></select></div>
-    <div class="bar" id="saveBar" hidden><button class="primary" id="saveXml">Spremi XML</button><button class="ghost" id="saveCsv">Spremi CSV</button></div>
+    <div class="bar" id="saveBar" hidden><button class="primary" id="saveXml">Spremi XML</button><button class="primary" id="saveXmlF" hidden>XML faza</button><button class="primary" id="saveXmlI" hidden>XML igrača</button><button class="ghost" id="saveCsv">Spremi CSV</button></div>
     <p class="sa-only">Na iPhoneu odaberi <b>Spremi u Datoteke → iCloud Drive → 3rd Man → Tag</b>. 3rd Man Studio na Macu tu mapu prati i sam ponudi novu utakmicu. iPhone zapamti mapu za sljedeći put.</p>
     <p id="saveNote" class="claude-only" hidden>Spremljeni ZIP otvori (na iPhoneu tap u aplikaciji Files) i unutra je .xml datoteka spremna za Sportscode.</p>
     <div class="bar"><button class="ghost" id="copyXml">Kopiraj XML</button><button class="ghost" id="copyCsv">Kopiraj CSV</button><button class="ghost" id="copySum">Kopiraj sažetak</button></div>
@@ -762,7 +762,9 @@ const plNum=t=>{const m=/^#(\d+)/.exec(t);return m?+m[1]:999};
 function playerOptions(){const c={};S.inst.forEach(i=>plOf(i).forEach(t=>c[t]=(c[t]||0)+1));return Object.keys(c).sort((a,b)=>plNum(a)-plNum(b)||a.localeCompare(b)).map(t=>[t,c[t]])}
 function fillPlSelect(sel,cur,allLabel){const o=playerOptions();if(cur&&!o.some(x=>x[0]===cur))o.push([cur,0]);
   sel.innerHTML=`<option value="">${allLabel}</option>`+o.map(([t,n])=>`<option value="${esc(t)}"${t===cur?" selected":""}>${esc(t)} (${n})</option>`).join("");sel.disabled=!o.length}
-const exFilter=i=>(!$("onlyStar").checked||isStar(i))&&(!$("exPl").value||plOf(i).includes($("exPl").value));
+/* dva XML-a iz iste utakmice: samo faze ili samo igrači (prozor igrača) */
+let EXSET="";const isPlTag=i=>String(i.bid||"").startsWith("p:");
+const exFilter=i=>(!EXSET||(EXSET==="igr")===isPlTag(i))&&(!$("onlyStar").checked||isStar(i))&&(!$("exPl").value||plOf(i).includes($("exPl").value));
 const goals=t=>S.inst.filter(i=>i.bid===GOAL[t]||(i.name==="Gol"&&i.team===t)).length;
 
 /* render */
@@ -930,7 +932,7 @@ function renderCtx(){const el=$("ctx");const t=curTarget();
   el.innerHTML=`<div class="ctxh"><span class="sw"></span><b>${esc(t.name)}</b><small>${minLbl(t.msec,t.half)}${withTeam(t.team)}${t.end==null?" · otvoreno":""}</small><button class="star sm" id="ctxStar" aria-pressed="${isStar(t)}" aria-label="Za analizu">★</button></div>`+
     gs.map(g=>`<div class="lrow"><span class="gn">${esc(g.group)}${g.end?" · zatvara":""}</span>${g.items.map(x=>lbtn(g,x,t,b.id,t.id)).join("")}</div>`).join("");
   if(CTXID!==t.id){CTXID=t.id;if(document.body.classList.contains("mm")&&window.scrollY>0)window.scrollTo({top:0})}}
-function renderLive(){renderBoard();renderCtx();renderCW();renderLiveLine();renderTarget();renderZone();renderGen();renderStrip();renderTL();renderMX();renderArch()}
+function renderLive(){renderExSplit();renderBoard();renderCtx();renderCW();renderLiveLine();renderTarget();renderZone();renderGen();renderStrip();renderTL();renderMX();renderArch()}
 function renderAll(){renderLive();renderED();renderKind()}
 
 /* actions */
@@ -1337,7 +1339,10 @@ async function saveFile(filename,data,label){
     else{toast("Spremanje ovdje ne radi, koristi Kopiraj");if(c!=="bad_request"&&c!=="too_large"){DL=null;$("saveBar").hidden=true;$("saveNote").hidden=true}}
     return true}
 }
-async function exportMatch(M){const n=baseName(M);if(!DL&&isSA())return saveFile(n+".xml",xml(M),"XML");if(DL)return saveFile(n+".zip",zip(n+".xml",xml(M)),"XML");copy(xml(M),"XML")}
+async function exportMatch(M){const n=baseName(M)+(EXSET==="faze"?"_faze":EXSET==="igr"?"_igraci":"");if(!DL&&isSA())return saveFile(n+".xml",xml(M),"XML");if(DL)return saveFile(n+".zip",zip(n+".xml",xml(M)),"XML");copy(xml(M),"XML")}
+const exOne=set=>{EXSET=set;try{if(!S.inst.some(exFilter))return toast("Nema akcija za taj XML");exportMatch(S)}finally{setTimeout(()=>{EXSET=""},0)}};
+$("saveXmlF").onclick=()=>exOne("faze");$("saveXmlI").onclick=()=>exOne("igr");
+function renderExSplit(){const both=S.inst.some(isPlTag)&&S.inst.some(i=>!isPlTag(i));$("saveXmlF").hidden=$("saveXmlI").hidden=!both}
 $("saveXml").onclick=()=>{if(!S.inst.length)return toast("Nema instanci za izvoz");if(!S.inst.some(exFilter))return toast("Nema akcija za odabrani filter");exportMatch(S)};
 $("saveCsv").onclick=()=>{if(!S.inst.length)return toast("Nema instanci za izvoz");saveFile(baseName()+".csv","﻿"+csv(),"CSV")};
 $("copyXml").onclick=()=>copy(xml(),"XML");$("copyCsv").onclick=()=>copy(csv(),"CSV");$("copySum").onclick=()=>copy(summary(),"Sažetak");
@@ -1445,7 +1450,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.09d",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.09e",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
