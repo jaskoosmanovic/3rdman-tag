@@ -280,6 +280,7 @@ body.mm .cw{display:flex;flex-wrap:wrap;gap:8px}
 .pgrid .cb .ct,body.mm .pgrid .cb .ct{position:absolute;top:3px;right:4px;font-size:10px!important;padding:0 4px;min-width:0}
 .pgrid .cb.flash{filter:brightness(1.25)}
 .pempty{color:var(--muted);font-size:14px;padding:8px 2px}
+body.win-igr #zoneBlk,body.win-igr #gen,body.win-igr #tgtBox{display:none!important}
 .ctx.ind .lrow{gap:5px}.ctx.ind .lb{min-height:38px;padding:4px 11px;font-size:15px}.ctx.ind .ctxh{font-size:17px}
 .mg{flex:var(--n) 1 calc(var(--n) * 30% - 8px);min-width:0;display:flex;flex-direction:column;gap:3px}
 .mgc{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -536,7 +537,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09b</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09c</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -790,6 +791,7 @@ function tick(){
 function lbtn(g,x,t,bid,tid){const on=t&&t.labels.some(l=>l.group===g.group&&l.text===x);const sym=/^[+\-−]$/.test(x);
   return`<button class="lb${g.end?" end":""}${sym?" sym":""}" data-g="${esc(g.group)}" data-t="${esc(x)}"${bid?` data-b="${esc(bid)}"`:""}${tid?` data-ti="${esc(tid)}"`:""} aria-pressed="${!!on}"${!bid&&!t?" disabled":""}>${esc(x==="-"?"−":x)}</button>`}
 function renderCW(){
+  document.body.classList.toggle("win-igr",S.win==="igr");
   const sw=`<div class="wsw" role="tablist" aria-label="Prozor"><button data-w="faze" aria-pressed="${S.win!=="igr"}">Faze</button><button data-w="igr" aria-pressed="${S.win==="igr"}">Igrači</button></div>`;
   if(S.win==="igr"){const pb=playerBtns();const sn=n=>{const w=String(n).replace(/^#\d+\s*/,"").trim().split(/\s+/);return w.length?w[w.length-1]:n};
     $("cw").innerHTML=sw+(pb.length?`<div class="pgrid">${pb.map(b=>{const n=S.inst.filter(i=>isOf(i,b)).length;return`<button class="cb" data-b="${esc(b.id)}" style="--c:${esc(b.color)};--cf:${fg(b.color)}" title="${esc(b.name)}"><span class="no">${esc(b.player.no||"–")}</span><span class="nm">${esc(b.player.no?sn(b.player.name):b.name)}</span><span class="ct">${n}</span></button>`}).join("")}</div>`:`<div class="pempty">Popis igrača je prazan. Upiši igrače u Postavke → Igrači.</div>`);
@@ -1443,7 +1445,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.09b",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.09c",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
