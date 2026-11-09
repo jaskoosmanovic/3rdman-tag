@@ -269,6 +269,18 @@ body.mm .live .idle{display:none}
 body.mm .help,body.mm .tabs,body.mm .panel{display:none!important}
 body.mm .wrap{gap:10px;padding-top:10px;padding-bottom:calc(var(--shh,0px) + 12px)}
 body.mm .cw{display:flex;flex-wrap:wrap;gap:8px}
+.wsw{display:flex;gap:4px;width:100%;margin-bottom:2px}
+.wsw button{flex:1;min-height:36px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.wsw button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
+.pgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;width:100%}
+@media (min-width:640px){.pgrid{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.pgrid .cb,body.mm .pgrid .cb{border-radius:7px;min-height:46px;padding:4px 5px;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;box-shadow:0 2px 0 color-mix(in srgb,var(--c) 65%,#000)}
+.pgrid .cb .no{font-family:var(--f-mono);font-weight:800;font-size:17px;line-height:1}
+.pgrid .cb .nm,body.mm .pgrid .cb .nm{font-size:11px!important;font-weight:700;text-transform:none!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.1}
+.pgrid .cb .ct,body.mm .pgrid .cb .ct{position:absolute;top:3px;right:4px;font-size:10px!important;padding:0 4px;min-width:0}
+.pgrid .cb.flash{filter:brightness(1.25)}
+.pempty{color:var(--muted);font-size:14px;padding:8px 2px}
+.ctx.ind .lrow{gap:5px}.ctx.ind .lb{min-height:38px;padding:4px 11px;font-size:15px}.ctx.ind .ctxh{font-size:17px}
 .mg{flex:var(--n) 1 calc(var(--n) * 30% - 8px);min-width:0;display:flex;flex-direction:column;gap:3px}
 .mgc{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .mgr{display:flex;gap:6px}
@@ -524,7 +536,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.08g</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09a</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -545,6 +557,11 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
     </details>
     <textarea class="big" id="rosterText" spellcheck="false" placeholder="1 Ivić&#10;5 Kovač&#10;9 Horvat"></textarea>
     <div class="bar"><button class="primary" id="saveRoster">Spremi igrače</button><button class="ghost" id="defRoster">Vrati zadani popis</button></div>
+    <h3>Prozor igrača</h3>
+    <p>Na glavnom zaslonu prekidač <b>Faze / Igrači</b>. U prozoru igrača svaki igrač s popisa je gumb: tap stvara akciju tog igrača (kod = igrač, oznaka Igrač), pa ispod biraš vrstu akcije, ishod i zonu.</p>
+    <div class="row"><label class="lbl-s" for="indLead">Sekundi prije tapa</label><input type="number" id="indLead" min="0" max="30" style="width:70px"><label class="lbl-s" for="indLag">poslije</label><input type="number" id="indLag" min="1" max="30" style="width:70px"></div>
+    <textarea class="big" id="indLbl" spellcheck="false" style="min-height:70px"></textarea>
+    <div class="bar"><button class="primary" id="saveInd">Spremi prozor igrača</button><button class="ghost" id="defInd">Zadano</button></div>
     <h3>Opće oznake</h3>
     <p>Oznake koje vrijede za bilo koji kod, idu na odabranu instancu. Jedna grupa po retku: <code>Grupa: oznaka, oznaka</code>. Može ostati prazno.</p>
     <textarea class="big" id="lblText" spellcheck="false"></textarea>
@@ -714,7 +731,12 @@ function keepSettings(n){n.kind=S.kind||"our";n.tpl=S.tpl;n.buttons=S.buttons;n.
 function leaveSample(){if(!S.sample)return;const n=keepSettings(blankMatch());n.home=S.home;n.away=S.away==="NK Rudeš"?"Gosti":S.away;S=n}
 /* instances belong to a button by id, or by name+team (a colleague's phone has its own button ids) */
 const isOf=(i,b)=>i.bid===b.id||(i.name===b.name&&(i.team||"")===(b.team||""));
-const btnById=id=>S.buttons.find(b=>b.id===id);
+/* prozor igrača: svaki igrač iz popisa je gumb; tag ima kod = igrač i oznaku Igrač (za Sportscode redak po igraču i za Studio/Skauting) */
+const IND_DEF={lead:6,lag:4,labels:"Akcija: dodavanje, primanje, duel, dribling, udarac, ubačaj, presing, oduzimanje, gubitak lopte, pozicija; Ishod: +, -"};
+const indSet=()=>Object.assign({},IND_DEF,S.ind||{});
+function playerBtns(){const I=indSet(),col=isScout()?"#6a4bc8":"#b39b6c";return roster().map(p=>{const txt=plText(p);return{id:"p:"+txt,name:txt,team:"",color:col,lead:+I.lead||0,lag:Math.max(1,+I.lag||1),group:"",labels:I.labels,player:p}})}
+const ALLB=()=>S.buttons.concat(playerBtns());
+const btnById=id=>ALLB().find(b=>b.id===id);
 const openInst=b=>S.inst.find(i=>isOf(i,b)&&i.end==null);
 const lastInst=b=>{let best=null;S.inst.forEach(i=>{if(isOf(i,b)&&(!best||i.start>=best.start))best=i});return best};
 const blockTarget=b=>openInst(b)||lastInst(b);
@@ -768,12 +790,16 @@ function tick(){
 function lbtn(g,x,t,bid,tid){const on=t&&t.labels.some(l=>l.group===g.group&&l.text===x);const sym=/^[+\-−]$/.test(x);
   return`<button class="lb${g.end?" end":""}${sym?" sym":""}" data-g="${esc(g.group)}" data-t="${esc(x)}"${bid?` data-b="${esc(bid)}"`:""}${tid?` data-ti="${esc(tid)}"`:""} aria-pressed="${!!on}"${!bid&&!t?" disabled":""}>${esc(x==="-"?"−":x)}</button>`}
 function renderCW(){
+  const sw=`<div class="wsw" role="tablist" aria-label="Prozor"><button data-w="faze" aria-pressed="${S.win!=="igr"}">Faze</button><button data-w="igr" aria-pressed="${S.win==="igr"}">Igrači</button></div>`;
+  if(S.win==="igr"){const pb=playerBtns();const sn=n=>{const w=String(n).replace(/^#\d+\s*/,"").trim().split(/\s+/);return w.length?w[w.length-1]:n};
+    $("cw").innerHTML=sw+(pb.length?`<div class="pgrid">${pb.map(b=>{const n=S.inst.filter(i=>isOf(i,b)).length;return`<button class="cb" data-b="${esc(b.id)}" style="--c:${esc(b.color)};--cf:${fg(b.color)}" title="${esc(b.name)}"><span class="no">${esc(b.player.no||"–")}</span><span class="nm">${esc(b.player.no?sn(b.player.name):b.name)}</span><span class="ct">${n}</span></button>`}).join("")}</div>`:`<div class="pempty">Popis igrača je prazan. Upiši igrače u Postavke → Igrači.</div>`);
+    tick();return}
   if(document.body.classList.contains("mm")){const by={};S.buttons.forEach(b=>{const m=momOf(b);(by[m]=by[m]||[]).push(b)});
     const tile=b=>{const o=openInst(b);const n=S.inst.filter(i=>isOf(i,b)).length;
       return`<button class="cb${o?" on":""}" data-b="${esc(b.id)}" style="--c:${esc(b.color)};--cf:${fg(b.color)}"><span class="nm">${esc(b.name)}</span><span class="meta">${o?`<span class="rec"><i></i><span data-dur="${esc(o.id)}"></span></span>`:`<span class="ct">${n}</span>`}</span></button>`};
-    $("cw").innerHTML=Object.keys(MOMS).filter(m=>by[m]).map(m=>`<div class="mg" style="--n:${by[m].length}"><span class="mgc">${MOMS[m]}</span><div class="mgr">${by[m].map(tile).join("")}</div></div>`).join("");
+    $("cw").innerHTML=sw+Object.keys(MOMS).filter(m=>by[m]).map(m=>`<div class="mg" style="--n:${by[m].length}"><span class="mgc">${MOMS[m]}</span><div class="mgr">${by[m].map(tile).join("")}</div></div>`).join("");
     tick();return}
-  $("cw").innerHTML=S.buttons.map(b=>{const o=openInst(b);const t=blockTarget(b);const gs=btnGroups(b);const n=S.inst.filter(i=>isOf(i,b)).length;
+  $("cw").innerHTML=sw+S.buttons.map(b=>{const o=openInst(b);const t=blockTarget(b);const gs=btnGroups(b);const n=S.inst.filter(i=>isOf(i,b)).length;
     return`<div class="blk" style="--c:${esc(b.color)};--cf:${fg(b.color)}">
       <button class="cb${o?" on":""}" data-b="${b.id}"><span class="nm">${esc(b.name)}</span>
       <span class="meta">${b.team?`<span class="tog">${esc(teamName(b.team))}</span>`:""}${o?`<span class="rec"><i></i><span data-dur="${esc(o.id)}"></span></span>`:`${b.lag?"":`<span class="tog">faza</span>`}<span class="ct">${n}</span>`}</span></button>
@@ -866,7 +892,10 @@ function renderMX(){
     h+=`<tr><td><b>${esc(n)}</b> <span style="color:var(--muted)">${esc(teamName(t))}</span></td><td class="tot">${list.length}</td>${oc.map(c=>{const v=list.filter(i=>i.labels.some(l=>l.group===c[0]&&l.text===c[1])).length;return`<td class="${v?"":"z"}">${v}</td>`}).join("")}</tr>`});
   $("mx").innerHTML=h+"</tbody></table>";
 }
-function renderED(){
+function renderInd(){const I=indSet();if(document.activeElement!==$("indLead"))$("indLead").value=I.lead;if(document.activeElement!==$("indLag"))$("indLag").value=I.lag;if(document.activeElement!==$("indLbl"))$("indLbl").value=I.labels}
+$("saveInd").onclick=()=>{S.ind={lead:Math.max(0,Math.min(30,+$("indLead").value||0)),lag:Math.max(1,Math.min(30,+$("indLag").value||1)),labels:$("indLbl").value.trim()||IND_DEF.labels};save();renderAll();toast("Prozor igrača spremljen")};
+$("defInd").onclick=()=>{S.ind=null;save();renderAll();toast("Prozor igrača: zadane postavke")};
+function renderED(){renderInd();
   $("edb").innerHTML=S.buttons.map((b,k)=>`<tr data-b="${b.id}">
     <td><button class="mv" data-up="${b.id}" aria-label="Pomakni gore"${k?"":" disabled"}>↑</button></td>
     <td><input data-k="name" value="${esc(b.name)}" aria-label="Naziv"></td>
@@ -893,9 +922,9 @@ function renderArch(){
 }
 let CTXID=null;
 function renderCtx(){const el=$("ctx");const t=curTarget();
-  if(!t){el.style.removeProperty("--c");el.innerHTML=`<div class="ctxh"><small style="white-space:normal">Tapni kod. Ovdje se pojave njegove oznake, zona i igrači.</small></div>`;CTXID=null;return}
-  const b=S.buttons.find(x=>isOf(t,x));const gs=b?btnGroups(b):[];
-  el.style.setProperty("--c",t.color);el.style.setProperty("--cf",fg(t.color));
+  if(!t){el.classList.remove("ind");el.style.removeProperty("--c");el.innerHTML=`<div class="ctxh"><small style="white-space:normal">Tapni kod. Ovdje se pojave njegove oznake, zona i igrači.</small></div>`;CTXID=null;return}
+  const b=ALLB().find(x=>isOf(t,x));const gs=b?btnGroups(b):[];
+  el.style.setProperty("--c",t.color);el.style.setProperty("--cf",fg(t.color));el.classList.toggle("ind",!!(b&&b.player));
   el.innerHTML=`<div class="ctxh"><span class="sw"></span><b>${esc(t.name)}</b><small>${minLbl(t.msec,t.half)}${withTeam(t.team)}${t.end==null?" · otvoreno":""}</small><button class="star sm" id="ctxStar" aria-pressed="${isStar(t)}" aria-label="Za analizu">★</button></div>`+
     gs.map(g=>`<div class="lrow"><span class="gn">${esc(g.group)}${g.end?" · zatvara":""}</span>${g.items.map(x=>lbtn(g,x,t,b.id,t.id)).join("")}</div>`).join("");
   if(CTXID!==t.id){CTXID=t.id;if(document.body.classList.contains("mm")&&window.scrollY>0)window.scrollTo({top:0})}}
@@ -905,11 +934,13 @@ function renderAll(){renderLive();renderED();renderKind()}
 /* actions */
 function newInst(b,t,team){
   const inst={id:nid(),bid:b.id,name:b.name,team:team!=null?team:b.team,color:b.color,start:Math.max(0,t-(+b.lead||0)),end:b.lag?t+(+b.lag):null,half:S.half,msec:mnow(),labels:[],by:DEV.name||""};
-  const p=$("pno").value.trim();if(p){inst.labels.push({group:"Igrač",text:playerText(p)});$("pno").value=""}
+  if(b.player)inst.labels.push({group:"Igrač",text:b.name});
+  const p=$("pno").value.trim();if(p&&!b.player){inst.labels.push({group:"Igrač",text:playerText(p)});$("pno").value=""}
   const sy=S.sys||{};["us","op"].forEach(k=>{if(sy[k])inst.labels.push({group:SYSG[k],text:sy[k]})});
   S.inst.push(inst);S.created.push(inst.id);if(S.created.length>200)S.created.shift();S.target=inst.id;return inst;
 }
 $("cw").addEventListener("click",e=>{
+  const w=e.target.closest("[data-w]");if(w){S.win=w.dataset.w==="igr"?"igr":"faze";save();renderLive();return}
   const lb=e.target.closest(".lb");if(lb){labelTap(lb);return}
   const el=e.target.closest(".cb");if(!el)return;leaveSample();
   const b=btnById(el.dataset.b);if(!b)return;beginAct(b.name);
@@ -1210,7 +1241,7 @@ $("archYes").onclick=()=>{ARCH=ARCH.filter(a=>a.mid!==pendingDel);lsSet(AKEY,ARC
 /* export */
 function hexRGB(h){const m=/^#?([0-9a-f]{6})$/i.exec(h||"");const n=m?parseInt(m[1],16):0x777777;return[(n>>16)&255,(n>>8)&255,n&255].map(v=>v*257)}
 /* halftime cut: a video with the break removed; everything from the first 2nd-half action on moves back */
-const leadOf=i=>{if(i.bid===GOAL.h||i.bid===GOAL.a||i.name==="Gol")return 15;const b=S.buttons.find(x=>isOf(i,x));return b?(+b.lead||0):0};
+const leadOf=i=>{if(i.bid===GOAL.h||i.bid===GOAL.a||i.name==="Gol")return 15;const b=ALLB().find(x=>isOf(i,x));return b?(+b.lead||0):0};
 const tapT=i=>i.start+leadOf(i);
 function h2Suggest(M){const L=M.inst.slice().sort((a,b)=>a.start-b.start);if(L.length<2)return null;const t0=L[0].start;let best=null,g=-1;
   for(let k=1;k<L.length;k++){const p=L[k-1];if(p.start-t0<30*60)continue;const gap=L[k].start-(p.end==null?p.start:p.end);if(gap>g){g=gap;best=L[k]}}
@@ -1242,7 +1273,7 @@ function xml(M){
   halves.forEach(h=>addRowLater.push(h));
   const rows=[];const seen=new Set();
   const addRow=(c,col)=>{if(seen.has(c))return;seen.add(c);const [r,g,b]=hexRGB(col);rows.push(`  <row>\n    <sort_order>${rows.length+1}</sort_order>\n    <code>${x(c)}</code>\n    <R>${r}</R>\n    <G>${g}</G>\n    <B>${b}</B>\n  </row>`)};
-  S.buttons.forEach(b=>{if(list.some(i=>isOf(i,b)))addRow(b.team?b.name+" "+tn(b.team):b.name,b.color)});
+  ALLB().forEach(b=>{if(list.some(i=>isOf(i,b)))addRow(b.team?b.name+" "+tn(b.team):b.name,b.color)});
   list.forEach(i=>addRow(cn(i),i.color));
   addRowLater.forEach(i=>addRow(i.name,i.color));
   return`<?xml version="1.0" encoding="utf-8"?>\n<file>\n<SESSION_INFO>\n  <start_time>${st(new Date(M.sessionStart||Date.now()))}</start_time>\n</SESSION_INFO>\n<SORT_INFO>\n  <sort_type>sort order</sort_type>\n</SORT_INFO>\n<ALL_INSTANCES>\n${inst}\n</ALL_INSTANCES>\n<ROWS>\n${rows.join("\n")}\n</ROWS>\n</file>`;
@@ -1253,7 +1284,7 @@ function csv(){
 }
 function summary(){
   let out=summaryLine(S)+"\n";
-  S.buttons.forEach(b=>{const list=S.inst.filter(i=>isOf(i,b));if(!list.length)return;
+  ALLB().forEach(b=>{const list=S.inst.filter(i=>isOf(i,b));if(!list.length)return;
     out+=`\n${b.name}: ${list.length}`;
     btnGroups(b).forEach(gr=>{const parts=gr.items.map(x=>[x,list.filter(i=>i.labels.some(l=>l.group===gr.group&&l.text===x)).length]).filter(p=>p[1]);if(parts.length)out+=`\n  ${gr.group}: `+parts.map(p=>p[0]+" "+p[1]).join(", ")})});
   return out;
@@ -1412,7 +1443,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.08g",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.09a",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
