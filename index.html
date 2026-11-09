@@ -537,7 +537,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
       <span id="archConfirmText"></span>
       <div class="bar"><button class="danger" id="archYes">Da, obriši</button><button class="ghost" id="archNo">Odustani</button></div>
     </div>
-    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09c</p>
+    <p class="ver" id="verLine">3rd Man Tag · verzija 2026.11.09d</p>
   </section>
 
   <section class="panel set" id="p-ed" hidden>
@@ -1445,7 +1445,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.09c",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.09d",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
