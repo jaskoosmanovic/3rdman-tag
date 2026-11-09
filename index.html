@@ -924,7 +924,7 @@ function renderArch(){
 }
 let CTXID=null;
 function renderCtx(){const el=$("ctx");const t=curTarget();
-  if(!t){el.classList.remove("ind");el.style.removeProperty("--c");el.innerHTML=`<div class="ctxh"><small style="white-space:normal">Tapni kod. Ovdje se pojave njegove oznake, zona i igrači.</small></div>`;CTXID=null;return}
+  if(!t){el.classList.remove("ind");el.style.removeProperty("--c");el.innerHTML=`<div class="ctxh"><small style="white-space:normal">${S.win==="igr"?"Tapni igrača: isječak ide pod njegovo ime.":"Tapni kod. Ovdje se pojave njegove oznake, zona i igrači."}</small></div>`;CTXID=null;return}
   const b=ALLB().find(x=>isOf(t,x));const gs=b?btnGroups(b):[];
   el.style.setProperty("--c",t.color);el.style.setProperty("--cf",fg(t.color));el.classList.toggle("ind",!!(b&&b.player));
   el.innerHTML=`<div class="ctxh"><span class="sw"></span><b>${esc(t.name)}</b><small>${minLbl(t.msec,t.half)}${withTeam(t.team)}${t.end==null?" · otvoreno":""}</small><button class="star sm" id="ctxStar" aria-pressed="${isStar(t)}" aria-label="Za analizu">★</button></div>`+
