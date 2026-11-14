@@ -284,6 +284,7 @@ body.mm .cw{display:flex;flex-wrap:wrap;gap:8px}
 .vbig{width:100%;min-height:54px;border-radius:10px;border:2px solid var(--gold);background:var(--surface);color:var(--ink);font:800 18px var(--f-body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vbig.on{background:var(--rec);border-color:var(--rec);color:#fff}
 .vbtn{flex:0 0 auto;min-height:52px;padding:6px 16px;border-radius:8px;border:2px solid var(--c);background:var(--surface);color:var(--ink);font:700 17px var(--f-body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+.nmic{flex:0 0 auto;min-width:48px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:20px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}.nmic.on{background:var(--rec);border-color:var(--rec)}
 .vbtn.on{background:var(--rec);border-color:var(--rec);color:#fff}
 #vTxt{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:17px}
 body.win-igr #zoneBlk,body.win-igr #gen,body.win-igr #tgtBox{display:none!important}
@@ -434,7 +435,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
     <label class="lbl-s" for="pno">Igrač #</label>
     <input id="pno" inputmode="numeric" maxlength="3" placeholder="–">
     <details class="plbox" id="plbox" open><summary id="plsum">Igrači</summary><div class="players" id="players"></div></details>
-    <div class="starrow"><button class="star" id="starBtn" aria-pressed="false">★ Za analizu</button><input type="text" id="noteIn" maxlength="240" placeholder="Bilješka · 🎤 diktat na tipkovnici, prezime = oznaka igrača" hidden></div>
+    <div class="starrow"><button class="star" id="starBtn" aria-pressed="false">★ Za analizu</button><input type="text" id="noteIn" maxlength="240" placeholder="Bilješka (ide u Studio) · prezime = oznaka igrača" hidden><button class="nmic" id="nMic" aria-label="Drži i izgovori bilješku" hidden>🎤</button></div>
   </div>
 
   <section class="cw" id="cw" aria-label="Prozor s kodovima"></section>
@@ -830,7 +831,7 @@ function renderTarget(){
   $("target").innerHTML=t?`<span class="lbl-s">Odabrano</span><br><b>${esc(t.name)}</b>${withTeam(t.team)} · ${minLbl(t.msec,t.half)}${t.end==null?" · otvoreno":""}<div class="chips">${t.labels.filter(l=>l.group!==STAR.group).map(l=>`<span class="chip">${esc(l.text)}</span>`).join("")}</div>`
     :`<span class="lbl-s">Odabrano</span><br>Tapni kod za početak.`;
   const sb=$("starBtn"),ni=$("noteIn");sb.disabled=!t;const on=!!t&&isStar(t);sb.setAttribute("aria-pressed",on);sb.textContent=on?"★ Za analizu ✓":"★ Za analizu";
-  ni.hidden=!t;if(t&&document.activeElement!==ni)ni.value=t.note||"";
+  ni.hidden=!t;$("nMic").hidden=!t;$("nMic").classList.toggle("on",VOICE.on&&VOICE.mode==="note");if(t&&document.activeElement!==ni&&!(VOICE.on&&VOICE.mode==="note"))ni.value=t.note||"";
   const r=roster();
   $("plbox").hidden=!r.length;$("plsum").textContent="Igrači ("+r.length+")";
   const sn=p=>(p.name.split(" ").pop()||p.name),cnt={};r.forEach(p=>{const k=sn(p);cnt[k]=(cnt[k]||0)+1});
@@ -935,25 +936,31 @@ let CTXID=null;
 function renderCtx(){const el=$("ctx");const t=curTarget();
   if(!t){el.classList.remove("ind");el.style.removeProperty("--c");el.innerHTML=`<div class="ctxh"><small style="white-space:normal">${S.win==="igr"?"Tapni igrača: isječak ide pod njegovo ime.":"Tapni kod. Ovdje se pojave njegove oznake, zona i igrači."}</small></div>`;CTXID=null;return}
   const b=ALLB().find(x=>isOf(t,x));const gs=b?btnGroups(b):[];
-  if(CTXID===t.id&&document.activeElement&&document.activeElement.id==="vTxt")return;
+  if(CTXID===t.id&&document.activeElement&&(document.activeElement.id==="vTxt"||document.activeElement.id==="vNoteTxt"))return;
   el.style.setProperty("--c",t.color);el.style.setProperty("--cf",fg(t.color));el.classList.toggle("ind",!!(b&&b.player));
   el.innerHTML=`<div class="ctxh"><span class="sw"></span><b>${esc(t.name)}</b><small>${minLbl(t.msec,t.half)}${withTeam(t.team)}${t.end==null?" · otvoreno":""}</small><button class="star sm" id="ctxStar" aria-pressed="${isStar(t)}" aria-label="Za analizu">★</button></div>`+
     gs.map(g=>`<div class="lrow"><span class="gn">${esc(g.group)}${g.end?" · zatvara":""}</span>${g.items.map(x=>lbtn(g,x,t,b.id,t.id)).join("")}</div>`).join("")+
-    (b&&b.player?`<div class="vrow"><button class="vbtn${VOICE.on&&VOICE.mode!=="tag"?" on":""}" id="vBtn" aria-label="Drži i reci što je igrač napravio">🎤 ${VOICE.on&&VOICE.mode!=="tag"?"Slušam…":"Opis"}</button><input id="vTxt" maxlength="60" placeholder="npr. dobiveni duel" value="${esc((t.labels.find(l=>l.group===VGROUP)||{}).text||"")}" enterkeyhint="done" autocomplete="off"></div>`:"");
+    (b&&b.player?`<div class="vrow"><button class="vbtn${VOICE.on&&VOICE.mode!=="tag"?" on":""}" id="vBtn" aria-label="Drži i reci što je igrač napravio">🎤 ${VOICE.on&&VOICE.mode!=="tag"?"Slušam…":"Opis"}</button><input id="vTxt" maxlength="60" placeholder="npr. dobiveni duel" value="${esc((t.labels.find(l=>l.group===VGROUP)||{}).text||"")}" enterkeyhint="done" autocomplete="off"></div>`:"")+
+    (S.win==="igr"?`<div class="vrow"><button class="vbtn${VOICE.on&&VOICE.mode==="note"?" on":""}" id="vNote" aria-label="Drži i izgovori bilješku">🎤 ${VOICE.on&&VOICE.mode==="note"?"Slušam…":"Bilješka"}</button><input id="vNoteTxt" maxlength="240" placeholder="bilješka, ide u Studio" value="${esc(t.note||"")}" enterkeyhint="done" autocomplete="off"></div>`:"");
   if(CTXID!==t.id){CTXID=t.id;if(document.body.classList.contains("mm")&&window.scrollY>0)window.scrollTo({top:0})}}
 /* glasovni opis uz tag igrača: drži 🎤 i reci (npr. „dobiveni duel”); tekst ide kao oznaka Akcija na zadnji tag */
 const VGROUP="Akcija";const VOICE={on:false,rec:null,text:"",tid:null};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function setVoiceLabel(tid,txt){const t=S.inst.find(i=>i.id===tid);if(!t)return;txt=String(txt||"").trim().replace(/\s+/g," ").toLowerCase();beginAct("🎤 "+txt);
   t.labels=t.labels.filter(l=>l.group!==VGROUP);if(txt)t.labels.push({group:VGROUP,text:txt});endAct();save();renderLive()}
+/* bilješka uz tag (diktat): ide u XML kao free_text, Studio je prikazuje kao bilješku akcije */
+function noteEl(){return S.win==="igr"?$("vNoteTxt"):$("noteIn")}
+function setNote(tid,txt,replace){const t=S.inst.find(i=>i.id===tid);if(!t)return;txt=String(txt||"").trim().replace(/\s+/g," ");
+  const cap=x=>x?x[0].toUpperCase()+x.slice(1):x;const v=replace?txt:((t.note?t.note.replace(/[.\s]+$/,"")+". ":"")+cap(txt));
+  beginAct("📝 bilješka");t.note=v.slice(0,240);const a=S.win==="igr"?[]:notePlayers(t);endAct();save();renderLive();if(!replace)toast("📝 "+txt+(a.length?" · igrač: "+a.join(", "):""))}
 function voiceStart(mode){const t=curTarget();if(mode!=="tag"&&!t)return;
-  if(!SR){toast(mode==="tag"?"Glas ovdje ne radi: tapni igrača":"Glas ovdje ne radi: upiši ili tapni mikrofon na tipkovnici");if(mode!=="tag")$("vTxt")&&$("vTxt").focus();return}
+  if(!SR){toast(mode==="tag"?"Glas ovdje ne radi: tapni igrača":"Glas ovdje ne radi: upiši ili tapni mikrofon na tipkovnici");const f=mode==="note"?noteEl():$("vTxt");if(mode!=="tag"&&f)f.focus();return}
   try{const r=new SR();r.lang="hr-HR";r.interimResults=true;r.continuous=true;r.maxAlternatives=1;
-    VOICE.on=true;VOICE.mode=mode;VOICE.rec=r;VOICE.text="";VOICE.tid=t?t.id:null;VOICE.t0=snow();
-    r.onresult=e=>{let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;VOICE.text=s2;const v=$(VOICE.mode==="tag"?"vBigTxt":"vTxt");if(v)(v.tagName==="INPUT"?v.value=s2:v.textContent=s2)};
+    VOICE.on=true;VOICE.mode=mode;VOICE.rec=r;VOICE.text="";VOICE.tid=t?t.id:null;VOICE.t0=snow();VOICE.base=t&&t.note?t.note.replace(/[.\s]+$/,"")+". ":"";
+    r.onresult=e=>{let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;VOICE.text=s2;const v=VOICE.mode==="note"?noteEl():$(VOICE.mode==="tag"?"vBigTxt":"vTxt");if(v)(v.tagName==="INPUT"?v.value=(VOICE.mode==="note"?VOICE.base:"")+s2:v.textContent=s2)};
     r.onerror=e=>{VOICE.on=false;renderLive();toast(e.error==="not-allowed"||e.error==="service-not-allowed"?"Mikrofon nije dopušten (Postavke → Safari → Mikrofon)":e.error==="network"?"Glas treba internet":"Glas nije prepoznat")};
     let ended=false;r.onend=()=>{if(ended)return;ended=true;VOICE.on=false;const txt=VOICE.text.trim();if(!txt){renderLive();return}
-      if(VOICE.mode==="tag")voiceTag(txt,VOICE.t0);else{setVoiceLabel(VOICE.tid,txt);toast("🎤 "+txt.toLowerCase())}};
+      if(VOICE.mode==="tag")voiceTag(txt,VOICE.t0);else if(VOICE.mode==="note")setNote(VOICE.tid,txt);else{setVoiceLabel(VOICE.tid,txt);toast("🎤 "+txt.toLowerCase())}};
     r.start();renderLive();try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}}catch(err){VOICE.on=false;toast("Glas ovdje ne radi")}}
 /* „Žabec” ili „Žabec dobiveni duel”: tag igrača u trenutku pritiska, ostatak rečenice ide kao oznaka Akcija */
 function voiceTag(txt,t0){const pb=playerBtns();const hit=playersIn(txt,pb.map(b=>b.name));
@@ -965,12 +972,14 @@ function voiceTag(txt,t0){const pb=playerBtns();const hit=playersIn(txt,pb.map(b
   endAct();save();renderLive();try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}
   toast("🎤 "+hit.join(", ")+(rest?" · "+rest:""));}
 function voiceStop(){const r=VOICE.rec;if(r&&VOICE.on&&!r._stop){r._stop=true;try{r.stop()}catch(e){}}}
-$("ctx").addEventListener("pointerdown",e=>{if(e.target.closest("#vBtn")){e.preventDefault();voiceStart("desc")}});
+$("ctx").addEventListener("pointerdown",e=>{if(e.target.closest("#vBtn")){e.preventDefault();voiceStart("desc")}else if(e.target.closest("#vNote")){e.preventDefault();voiceStart("note")}});
+$("nMic").addEventListener("pointerdown",e=>{e.preventDefault();voiceStart("note");renderTarget()});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>$("nMic").addEventListener(ev,()=>{if(VOICE.on)voiceStop()}));
 $("cw").addEventListener("pointerdown",e=>{if(e.target.closest("#vBig")){e.preventDefault();voiceStart("tag")}});
-["pointerup","pointercancel","pointerleave"].forEach(ev=>["ctx","cw"].forEach(id=>$(id).addEventListener(ev,e=>{if(VOICE.on&&e.target.closest("#vBtn,#vBig"))voiceStop()})));
+["pointerup","pointercancel","pointerleave"].forEach(ev=>["ctx","cw"].forEach(id=>$(id).addEventListener(ev,e=>{if(VOICE.on&&e.target.closest("#vBtn,#vBig,#vNote"))voiceStop()})));
 document.addEventListener("pointerup",()=>{if(VOICE.on)voiceStop()});
-$("ctx").addEventListener("change",e=>{if(e.target.id==="vTxt"){const t=curTarget();if(t)setVoiceLabel(t.id,e.target.value)}});
-$("ctx").addEventListener("keydown",e=>{if(e.target.id==="vTxt"&&e.key==="Enter"){e.preventDefault();e.target.blur()}});
+$("ctx").addEventListener("change",e=>{const t=curTarget();if(!t)return;if(e.target.id==="vTxt")setVoiceLabel(t.id,e.target.value);else if(e.target.id==="vNoteTxt")setNote(t.id,e.target.value,true)});
+$("ctx").addEventListener("keydown",e=>{if((e.target.id==="vTxt"||e.target.id==="vNoteTxt")&&e.key==="Enter"){e.preventDefault();e.target.blur()}});
 function renderLive(){renderExSplit();renderBoard();renderCtx();renderCW();renderLiveLine();renderTarget();renderZone();renderGen();renderStrip();renderTL();renderMX();renderArch()}
 function renderAll(){renderLive();renderED();renderKind()}
 
@@ -1489,7 +1498,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.09f",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.14a",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
