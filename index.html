@@ -274,8 +274,8 @@ body.mm .cw{display:flex;flex-wrap:wrap;gap:8px}
 .wsw button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:transparent}
 .pgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;width:100%}
 @media (min-width:640px){.pgrid{grid-template-columns:repeat(8,minmax(0,1fr))}}
-.pgrid .cb,body.mm .pgrid .cb{border-radius:7px;min-height:46px;padding:4px 5px;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;box-shadow:0 2px 0 color-mix(in srgb,var(--c) 65%,#000)}
-.pgrid .cb .no{font-family:var(--f-mono);font-weight:800;font-size:17px;line-height:1}
+.pgrid .cb,body.mm .pgrid .cb{border-radius:7px;min-height:40px;padding:3px 5px;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;box-shadow:0 2px 0 color-mix(in srgb,var(--c) 65%,#000)}
+.pgrid .cb .no{font-family:var(--f-mono);font-weight:800;font-size:15px;line-height:1}
 .pgrid .cb .nm,body.mm .pgrid .cb .nm{font-size:11px!important;font-weight:700;text-transform:none!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.1}
 .pgrid .cb .ct,body.mm .pgrid .cb .ct{position:absolute;top:3px;right:4px;font-size:10px!important;padding:0 4px;min-width:0}
 .pgrid .cb.flash{filter:brightness(1.25)}
@@ -294,13 +294,13 @@ body.win-igr #zoneBlk,body.win-igr #gen,body.win-igr #tgtBox{display:none!import
 .mgr{display:flex;gap:6px}
 .mgr .cb{flex:1 1 0;min-width:0;border-radius:8px;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 65%,#000)}
 .mgr .cb.on{box-shadow:inset 0 0 0 4px var(--cf),0 3px 0 color-mix(in srgb,var(--c) 65%,#000)}
-body.mm .cb{min-height:68px;padding:8px 8px;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
-body.mm .cb .nm{font-size:clamp(12.5px,3.4vw,18px);overflow-wrap:normal;word-break:normal;hyphens:none;letter-spacing:0;line-height:1.05}
+body.mm .cb{min-height:46px;padding:6px 30px 6px 8px;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px}
+body.mm .cb .nm{font-size:clamp(12px,3.1vw,16px);overflow-wrap:normal;word-break:normal;hyphens:none;letter-spacing:0;line-height:1.05}
 body.mm .cb .tog{display:none}
 body.mm.recording .board{background-color:var(--rec)}
 body.mm.recording::before{background:var(--rec)}
 body.mm #sampleNote{order:0} body.mm #ctx{order:1} body.mm #gen{order:2} body.mm #zoneBlk{order:3} body.mm #tgtBox{order:4}
-body.mm .cb .ct{font-size:12px;padding:0 7px;min-width:0}
+body.mm .cb .ct{position:absolute;top:4px;right:4px;font-size:11px;padding:0 5px;min-width:0}
 body.mm .cb.on .rec{font-size:13px;padding:1px 6px}
 body.mm .vclock,body.mm .long{display:none}
 body.mm #actBar{flex-wrap:nowrap;gap:6px}
@@ -1498,7 +1498,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.14a",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.14b",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
