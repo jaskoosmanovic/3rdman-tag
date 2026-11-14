@@ -311,6 +311,7 @@ body.mm .sheet{display:flex;flex-direction:column;position:fixed;left:0;right:0;
 #dockIn{padding-block:6px 4px}
 .sh-in{max-width:900px;margin:0 auto;width:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sh-bar .sh-in{padding-block:8px;border-top:1px solid var(--line)}
+body:not(.mm) #actBar{position:fixed;left:0;right:0;bottom:0;z-index:6;margin:0;background:var(--bg);box-shadow:0 -6px 18px rgba(0,0,0,.12);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap;gap:6px}body:not(.mm) #actBar .ghost{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;padding:8px 9px}body:not(.mm){padding-bottom:72px}
 .ctx{--c:var(--line);--cf:var(--bg);display:none}
 body.mm .ctx{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:8px;padding:10px 12px}
 .ctxh{display:flex;align-items:center;gap:8px;min-width:0;font-family:var(--f-display);font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
@@ -1498,7 +1499,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.14c",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.14d",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
