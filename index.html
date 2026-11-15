@@ -630,7 +630,9 @@ const SYSG0={us:"Naš sustav",op:"Sustav suparnika"},SYSO={us:"Sustav suparnika"
 const SYSG=new Proxy({},{get:(o,k)=>(S&&S.kind==="opp"?SYSO:SYSG0)[k]});
 const DEF_ROSTER="1 Luka Pršlja\n2 El Arabi Hilal Soudani\n3 Filip Markanović\n4 Leon Zeqiraj\n5 Tin Kulenović\n6 Lovro Dukić\n7 David Žabec\n8 Luka Jurak\n9 Medin Gashi\n10 Rafael Gomes Cirino\n10 Niko Jemin\n11 Jan Doležal\n12 Antonio Rajić\n13 Marin Vučković\n14 Filipe Jose Quissequel\n14 Lovro Renić\n15 Josip Bartulović\n16 Razmik Mayilyan Petrosyan\n17 Mauro Zalazar Martinez\n18 Tomislav Krizmanić\n19 Prosper Obiora Nwachukwu\n20 Đivo Pregelj\n23 Domagoj Begonja\n24 Malick Diop\n25 Sven Sopić\n51 Joshua Joel Marcel Ayobami T Nichols\n55 Ivan Graf\n88 Nikola Šunjić\nFilip Golem";
 /* Croatia A team, Bilić's wider list for the November 2026 Nations League games (no shirt numbers yet) */
-const CRO_ROSTER="Dominik Livaković\nDominik Kotarski\nKarlo Letica\nIvor Pandur\nJoško Gvardiol\nJosip Šutalo\nDuje Ćaleta-Car\nJosip Stanišić\nMarin Pongračić\nLuka Vušković\nIvan Smolčić\nŠimun Hrgović\nLuka Modrić\nMateo Kovačić\nMario Pašalić\nNikola Vlašić\nLovro Majer\nMartin Baturina\nPetar Sučić\nLuka Sučić\nKristijan Jakić\nToni Fruk\nJosip Mišić\nIvan Perišić\nAndrej Kramarić\nAnte Budimir\nMarco Pašalić\nIgor Matanović\nPetar Musa\nFranjo Ivanović\nDion Drena Beljo\nMarin Šotiček";
+const CRO_ROSTER_OLD="Dominik Livaković\nDominik Kotarski\nKarlo Letica\nIvor Pandur\nJoško Gvardiol\nJosip Šutalo\nDuje Ćaleta-Car\nJosip Stanišić\nMarin Pongračić\nLuka Vušković\nIvan Smolčić\nŠimun Hrgović\nLuka Modrić\nMateo Kovačić\nMario Pašalić\nNikola Vlašić\nLovro Majer\nMartin Baturina\nPetar Sučić\nLuka Sučić\nKristijan Jakić\nToni Fruk\nJosip Mišić\nIvan Perišić\nAndrej Kramarić\nAnte Budimir\nMarco Pašalić\nIgor Matanović\nPetar Musa\nFranjo Ivanović\nDion Drena Beljo\nMarin Šotiček";
+const CRO_ROSTER="1 Dominik Livaković\n2 Josip Stanišić\n3 Luka Vušković\n4 Joško Gvardiol\n5 Duje Ćaleta-Car\n6 Niko Galešić\n7 Lovro Majer\n8 Mateo Kovačić\n9 Dion Drena Beljo\n10 Luka Modrić\n11 Ante Budimir\n12 Ivor Pandur\n13 Ivan Smolčić\n14 Ivan Perišić\n15 Mario Pašalić\n16 Martin Baturina\n17 Petar Sučić\n18 Šimun Hrgović\n19 Marco Pašalić\n20 Igor Matanović\n21 Marin Šotiček\n22 Josip Mišić\n23 Dominik Kotarski"; /* Hrvatska – Češka, Osijek 15.11.2026 (23 igrača s brojevima) */
+const CZE_ROSTER="1 Matěj Kovář\n2 Filip Prebsl\n3 Tomáš Vlček\n4 Adam Gabriel\n5 Vladimír Coufal\n6 David Zima\n7 Hopi\n8 Michal Sadílek\n9 Ryan Naderi\n10 Adam Hložek\n11 Christophe Kabongo\n12 Lukáš Červ\n13 Lukáš Ambros\n14 David Jurásek\n15 Jiří Sláma\n16 Lukáš Horníček\n18 Matěj Jurásek\n19 David Kozel\n20 Krištof Daněk\n21 Alex Král\n22 Tomáš Souček\n23 Antonín Kinský"; /* Češka – Osijek 15.11.2026 */
 const TEAMS={kust:{name:DEF_HOME,roster:DEF_ROSTER},cro:{name:"Hrvatska",roster:CRO_ROSTER}};
 const lsGet=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return e&&(e.name==="QuotaExceededError"||e.code===22)?false:"none"}};
@@ -706,7 +708,7 @@ function sample(){
 }
 let S=lsGet(KEY,null);
 if(!S||!Array.isArray(S.inst)||!Array.isArray(S.buttons))S=Object.assign(blank(),{away:"Gosti"});
-if(!S.roster)S.roster=DEF_ROSTER;if(!S.team)S.team="kust";if(!S.crests)S.crests={};if(!S.crests.kust)S.crests.kust=KUST_CREST;if(!S.rosters)S.rosters={kust:S.roster};if(!S.rosters.cro)S.rosters.cro=CRO_ROSTER;S.roster=S.roster.replace(/^9 Filip Golem$/m,"Filip Golem"); /* Gashi wears 9 */if(S.home==="Domaći"||S.home==="NK Zagreb")S.home=DEF_HOME;if(S.showZone==null)S.showZone=true;if(!S.zones)S.zones="4x2";if(!S.sys)S.sys={us:"",op:""};if(S.sysList==null)S.sysList=DEFSYS;if(!S.created)S.created=[];if(!S.mid)S.mid=nid();
+if(!S.roster)S.roster=DEF_ROSTER;if(!S.team)S.team="kust";if(!S.crests)S.crests={};if(!S.crests.kust)S.crests.kust=KUST_CREST;if(!S.rosters)S.rosters={kust:S.roster};if(!S.rosters.cro)S.rosters.cro=CRO_ROSTER;if(S.rosters.cro===CRO_ROSTER_OLD){S.rosters.cro=CRO_ROSTER;if(S.team==="cro"&&(S.roster===CRO_ROSTER_OLD||S.kind!=="opp"))S.roster=CRO_ROSTER}if(!S.rosters["opp:ceska"])S.rosters["opp:ceska"]=CZE_ROSTER;S.roster=S.roster.replace(/^9 Filip Golem$/m,"Filip Golem"); /* Gashi wears 9 */if(S.home==="Domaći"||S.home==="NK Zagreb")S.home=DEF_HOME;if(S.showZone==null)S.showZone=true;if(!S.zones)S.zones="4x2";if(!S.sys)S.sys={us:"",op:""};if(S.sysList==null)S.sysList=DEFSYS;if(!S.created)S.created=[];if(!S.mid)S.mid=nid();
 S.buttons.forEach(b=>{if(b.name==="Individualno"&&+b.lead===5&&+b.lag===5){b.lead=7;b.lag=7}});
 /* novi igrači u postojećem popisu Kustošije (popis na mobitelu se inače ne mijenja sam) */
 (()=>{const add=(txt,line)=>{if(!txt||/Malick Diop/.test(txt))return txt;const L=txt.split("\n");const no=n=>{const m=/^(\d+)/.exec(n);return m?+m[1]:999};let k=L.findIndex(x=>no(x)>24);if(k<0)k=L.length;L.splice(k,0,line);return L.join("\n")};
@@ -1499,7 +1501,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.14d",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.15a",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
