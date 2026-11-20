@@ -947,7 +947,7 @@ function renderCtx(){if(VOICE.on){voiceUI();return}const el=$("ctx");const t=cur
     (S.win==="igr"?`<div class="vrow"><button class="vbtn${VOICE.on&&VOICE.mode==="note"?" on":""}" id="vNote" aria-label="Drži i izgovori bilješku">🎤 ${VOICE.on&&VOICE.mode==="note"?"Slušam…":"Bilješka"}</button><input id="vNoteTxt" maxlength="240" placeholder="bilješka, ide u Studio" value="${esc(t.note||"")}" enterkeyhint="done" autocomplete="off"></div>`:"");
   if(CTXID!==t.id){CTXID=t.id;if(document.body.classList.contains("mm")&&window.scrollY>0)window.scrollTo({top:0})}}
 /* glasovni opis uz tag igrača: drži 🎤 i reci (npr. „dobiveni duel”); tekst ide kao oznaka Akcija na zadnji tag */
-const VGROUP="Akcija";const VOICE={on:false,rec:null,text:"",tid:null};
+const VGROUP="Akcija";const VOICE={on:false,text:"",tid:null,active:false,live:false,held:false,ev:[]};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function setVoiceLabel(tid,txt){const t=S.inst.find(i=>i.id===tid);if(!t)return;txt=String(txt||"").trim().replace(/\s+/g," ").toLowerCase();beginAct("🎤 "+txt);
   t.labels=t.labels.filter(l=>l.group!==VGROUP);if(txt)t.labels.push({group:VGROUP,text:txt});endAct();save();renderLive()}
@@ -956,17 +956,33 @@ function noteEl(){return S.win==="igr"?$("vNoteTxt"):$("noteIn")}
 function setNote(tid,txt,replace){const t=S.inst.find(i=>i.id===tid);if(!t)return;txt=String(txt||"").trim().replace(/\s+/g," ");
   const cap=x=>x?x[0].toUpperCase()+x.slice(1):x;const v=replace?txt:((t.note?t.note.replace(/[.\s]+$/,"")+". ":"")+cap(txt));
   beginAct("📝 bilješka");t.note=v.slice(0,240);const a=S.win==="igr"?[]:notePlayers(t);endAct();save();renderLive();if(!replace)toast("📝 "+txt+(a.length?" · igrač: "+a.join(", "):""))}
+/* iOS Safari: drugi „new SpeechRecognition” na istoj stranici sustav prekine („aborted”), pa radi samo prvo slušanje.
+   Zato jedan prepoznavač za cijelu sesiju; novo slušanje kreće tek kad je prethodno javilo kraj (onend). */
+function voiceRec(){if(VOICE.R)return VOICE.R;const r=new SR();r.lang="hr-HR";r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
+  const ev=x=>{if(VOICE.ev&&VOICE.ev.length<24)VOICE.ev.push(x+((Date.now()-VOICE.T0)/1000).toFixed(1))};
+  ["audiostart","speechstart","speechend","audioend"].forEach(n=>r.addEventListener(n,()=>ev(n[0]+n.slice(-3,-2))));
+  r.onresult=e=>{if(!VOICE.live)return;ev("r");let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;
+    VOICE.text=((VOICE.prev?VOICE.prev+" ":"")+s2).trim();const v=VOICE.mode==="note"?noteEl():$(VOICE.mode==="tag"?"vBigTxt":"vTxt");if(v)(v.tagName==="INPUT"?v.value=(VOICE.mode==="note"?VOICE.base:"")+VOICE.text:v.textContent=VOICE.text)};
+  r.onerror=e=>{ev("E:"+(e.error||""));if(VOICE.live)VOICE.err=e.error||""};
+  r.onend=()=>{ev("end");VOICE.active=false;clearTimeout(VOICE.cut);
+    if(VOICE.pending){const m=VOICE.pending;VOICE.pending=null;setTimeout(()=>voiceBegin(m),150);return}
+    if(!VOICE.live)return;const c=VOICE.err,fatal=/not-allowed|audio-capture|language-not-supported|network/.test(c||"");
+    /* prst još drži 🎤: iOS je sam završio nakon tišine → nastavi slušati, tekst se nadovezuje */
+    if(VOICE.held&&!fatal&&VOICE.tries<6){VOICE.tries++;VOICE.prev=VOICE.text;setTimeout(()=>{if(VOICE.held&&VOICE.live)voiceGo();else voiceDone()},120);return}
+    voiceDone()};
+  return VOICE.R=r}
+function voiceGo(){const r=voiceRec();VOICE.err="";try{r.start();VOICE.active=true;VOICE.ev.push("s"+((Date.now()-VOICE.T0)/1000).toFixed(1))}catch(err){VOICE.active=false;VOICE.ev.push("x:"+(err&&err.name));if(!VOICE.tries){VOICE.tries=1;try{r.abort()}catch(_){}VOICE.pending=VOICE.mode;VOICE.live=false;return}VOICE.live=false;VOICE.on=false;voiceUI();toast("Glas ovdje ne radi ("+(err&&err.name||err)+")")}}
 function voiceStart(mode){const t=curTarget();if(mode!=="tag"&&!t)return;
   if(!SR){toast(mode==="tag"?"Glas ovdje ne radi: tapni igrača":"Glas ovdje ne radi: upiši ili tapni mikrofon na tipkovnici");const f=mode==="note"?noteEl():$("vTxt");if(mode!=="tag"&&f)f.focus();return}
-  if(VOICE.rec){const o=VOICE.rec;VOICE.rec=null;try{o.abort()}catch(_){}}
-  try{const r=new SR();r.lang="hr-HR";r.interimResults=true;r.continuous=true;r.maxAlternatives=1;
-    VOICE.on=true;VOICE.mode=mode;VOICE.rec=r;VOICE.text="";VOICE.tid=t?t.id:null;VOICE.t0=snow();VOICE.base=t&&t.note?t.note.replace(/[.\s]+$/,"")+". ":"";
-    r.onresult=e=>{if(VOICE.rec!==r)return;let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;VOICE.text=s2;const v=VOICE.mode==="note"?noteEl():$(VOICE.mode==="tag"?"vBigTxt":"vTxt");if(v)(v.tagName==="INPUT"?v.value=(VOICE.mode==="note"?VOICE.base:"")+s2:v.textContent=s2)};
-    r.onerror=e=>{if(VOICE.rec!==r)return;const c=e.error||"";if(VOICE.text.trim()&&c!=="not-allowed"&&c!=="service-not-allowed")return;VOICE.err=c;
-      toast(c==="not-allowed"||c==="service-not-allowed"?"Mikrofon ili diktat nije dopušten (Postavke → Safari → Mikrofon; Općenito → Tipkovnica → Diktiranje)":c==="network"?"Glas treba internet":c==="no-speech"?"Nisam ništa čuo. Drži 🎤 dok govoriš do kraja":c==="audio-capture"?"Mikrofon je zauzet (poziv ili druga aplikacija)":c==="language-not-supported"?"Hrvatski diktat nije uključen (Postavke → Općenito → Tipkovnica → Diktiranje)":c==="aborted"?"Slušanje prekinuto, pokušaj ponovno":"Glas nije prepoznat ("+c+")")};
-    let ended=false;r.onend=()=>{if(ended||VOICE.rec!==r)return;ended=true;VOICE.on=false;VOICE.rec=null;const txt=VOICE.text.trim();if(!txt){renderLive();if(!VOICE.err)toast("Nisam ništa čuo. Drži 🎤 dok govoriš do kraja");return}
-      if(VOICE.mode==="tag")voiceTag(txt,VOICE.t0);else if(VOICE.mode==="note")setNote(VOICE.tid,txt);else{setVoiceLabel(VOICE.tid,txt);toast("🎤 "+txt.toLowerCase())}};
-    VOICE.err="";r.start();voiceUI();try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}}catch(err){VOICE.on=false;toast("Glas ovdje ne radi")}}
+  if(VOICE.live&&VOICE.text.trim()){VOICE.held=false;clearTimeout(VOICE.cut);voiceDone()}/* prethodno još nije završilo: spremi što je čulo, pa novo */
+  VOICE.live=false;VOICE.text="";VOICE.prev="";VOICE.t0=snow();VOICE.T0=Date.now();VOICE.tries=0;VOICE.ev=[];VOICE.tid=t?t.id:null;VOICE.base=t&&t.note?t.note.replace(/[.\s]+$/,"")+". ":"";
+  VOICE.held=true;VOICE.on=true;VOICE.mode=mode;voiceUI();try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}
+  if(VOICE.active){VOICE.live=false;VOICE.pending=mode;try{voiceRec().abort()}catch(_){}return}
+  voiceBegin(mode)}
+function voiceBegin(m){if(!VOICE.on)return;VOICE.mode=m;VOICE.live=true;voiceGo()}
+function voiceDone(){VOICE.on=false;VOICE.live=false;VOICE.prev="";const txt=VOICE.text.trim(),c=VOICE.err;
+  if(!txt){renderLive();toast(/not-allowed/.test(c||"")?"Mikrofon ili diktat nije dopušten (Postavke → Safari → Mikrofon; Općenito → Tipkovnica → Diktiranje)":c==="network"?"Glas treba internet":c==="audio-capture"?"Mikrofon je zauzet (poziv ili druga aplikacija)":c==="language-not-supported"?"Hrvatski diktat nije uključen (Postavke → Općenito → Tipkovnica → Diktiranje)":"Nisam ništa čuo. Drži 🎤 dok govoriš · "+VOICE.ev.join(" "));return}
+  if(VOICE.mode==="tag")voiceTag(txt,VOICE.t0);else if(VOICE.mode==="note")setNote(VOICE.tid,txt);else{setVoiceLabel(VOICE.tid,txt);toast("🎤 "+txt.toLowerCase())}}
 /* „Žabec” ili „Žabec dobiveni duel”: tag igrača u trenutku pritiska, ostatak rečenice ide kao oznaka Akcija */
 function voiceTag(txt,t0){const pb=playerBtns();const hit=playersIn(txt,pb.map(b=>b.name));
   if(!hit.length){toast("Nisam prepoznao igrača: „"+txt+"”");renderLive();return}
@@ -976,7 +992,8 @@ function voiceTag(txt,t0){const pb=playerBtns();const hit=playersIn(txt,pb.map(b
   for(const name of hit){const b=pb.find(x=>x.name===name);if(!b)continue;const inst=newInst(b,t0);if(rest)inst.labels.push({group:VGROUP,text:rest});last=inst}
   endAct();save();renderLive();try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}
   toast("🎤 "+hit.join(", ")+(rest?" · "+rest:""));}
-function voiceStop(){const r=VOICE.rec;if(r&&VOICE.on&&!r._stop){r._stop=true;setTimeout(()=>{try{r.stop()}catch(e){}},400)}}
+/* pusti 🎤: iOS sam završi nakon kratke tišine i preda konačni tekst; ako ne, stop nakon 1,2 s */
+function voiceStop(){if(!VOICE.on||!VOICE.held)return;VOICE.held=false;if(!VOICE.active){if(!VOICE.pending)voiceDone();return}clearTimeout(VOICE.cut);VOICE.cut=setTimeout(()=>{if(VOICE.active)try{voiceRec().stop()}catch(e){}},1200)}
 /* stanje 🎤 gumba bez ponovnog crtanja: gumb pod prstom ostaje isti element (iOS inače izgubi „pusti”) */
 function voiceUI(){const on=VOICE.on,m=VOICE.mode,set=(id,act,txt)=>{const b=$(id);if(b){b.classList.toggle("on",act);if(txt!=null)b.textContent=txt}};
   set("vBig",on&&m==="tag");const s=$("vBigTxt");if(s&&!(on&&m==="tag"&&VOICE.text))s.textContent=on&&m==="tag"?"Slušam… reci prezime":"Drži i reci prezime";
@@ -1507,7 +1524,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.20a",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.20b",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
