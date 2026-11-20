@@ -1001,7 +1001,7 @@ async function recSave(){cancelAnimationFrame(REC.raf);const dur=(Date.now()-REC
   const pb=playerBtns(),p0=pb[0]||{lead:5,lag:5};
   leaveSample();beginAct("🎙 glasovni");
   const inst=newInst({id:"voice",name:"Glasovni",team:"",color:VCOL,lead:+p0.lead||0,lag:Math.max(1,+p0.lag||1)},t0);
-  inst.voice={dur:Math.round(dur*10)/10,mime:blob.type||REC.mime};inst.labels.push({group:"Glas",text:inst.id});
+  inst.voice={dur:Math.round(dur*10)/10,mime:blob.type||REC.mime,lead:+p0.lead||0};inst.labels.push({group:"Glas",text:inst.id});
   endAct();save();let ok=false;try{ok=await idbPut(S.mid+":"+inst.id,{type:inst.voice.mime,buf:await blob.arrayBuffer()})}catch(_){}
   renderLive();const n=S.inst.filter(i=>i.voice).length;
   toast(ok?"🎙 Snimljeno "+dur.toFixed(1)+" s · "+minLbl(inst.msec,inst.half)+" · glasovnih: "+n:"🎙 Tag je tu, ali snimka nije spremljena (memorija)")}
@@ -1012,9 +1012,11 @@ async function recPlay(id){const v=await idbGet(S.mid+":"+id);if(!v)return toast
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&REC.stream&&!REC.on){REC.stream.getTracks().forEach(t=>t.stop());REC.stream=null}});
 function b64(buf){const u=new Uint8Array(buf);let s="";for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
 async function glasPack(M,n){const clips=[];let miss=0;
-  for(const i of M.inst.filter(i=>i.voice)){const v=await idbGet(M.mid+":"+i.id);if(!v){miss++;continue}clips.push({id:i.id,mime:v.type,dur:i.voice.dur,b64:b64(v.buf)})}
-  const players=(M===S?playerBtns():playerBtns()).map(b=>({name:b.name,color:b.color}));
-  return{text:JSON.stringify({app:"3rd Man Tag",kind:"glas",v:1,ver:VER,base:n,home:M.home,away:M.away,players,xml:xml(M),clips}),n:clips.length,miss}}
+  for(const i of M.inst.filter(i=>i.voice)){const v=await idbGet(M.mid+":"+i.id);if(!v){miss++;continue}clips.push({id:i.id,mime:v.type,dur:i.voice.dur,lead:i.voice.lead!=null?i.voice.lead:(+(playerBtns()[0]||{}).lead||0),b64:b64(v.buf)})}
+  const players=playerBtns().map(b=>({name:b.name,color:b.color}));
+  const tn=t=>t==="h"?M.home:t==="a"?M.away:"";
+  const phases=S.buttons.map(b=>({name:b.name,code:b.team?b.name+" "+tn(b.team):b.name,color:b.color,lead:+b.lead||0,lag:+b.lag||0,labels:b.labels||""}));
+  return{text:JSON.stringify({app:"3rd Man Tag",kind:"glas",v:1,ver:VER,base:n,home:M.home,away:M.away,players,phases,xml:xml(M),clips}),n:clips.length,miss}}
 /* način glasa: „kbd” = diktiranje tipkovnicom iPhonea (zadano, pouzdano), „web” = drži 🎤 (Web Speech, varijanta iz Testa glasa) */
 const VVARS=[{id:1,name:"Novi svaki put, neprekidno",reuse:false,cont:true},{id:2,name:"Novi svaki put, do tišine",reuse:false,cont:false},{id:3,name:"Isti, do tišine",reuse:true,cont:false},{id:4,name:"Isti, neprekidno",reuse:true,cont:true}];
 function VM(){let m="";try{m=localStorage.getItem("terenTagger.vMode")||""}catch(e){}return m==="kbd"||m==="web"?m:"rec"}
@@ -1643,7 +1645,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.20e",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.20f",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
