@@ -653,12 +653,12 @@ const defId=n=>"d-"+n.toLowerCase().replace(/\+/g," plus").replace(/-/g," minus"
 function defButtons(){
   const b=(name,color,lead,lag,group,labels)=>({id:defId(name),name,team:"",color,lead,lag,group,labels});
   return[
-    b("BUILD UP","#009a00",0,0,"faza","Formacija: 4+1, 4+2, 3+1, 3+2; Smjer: left, centre, right, direct; Ishod!: progression, fail"),
-    b("ORGANISATION","#3b95e0",0,0,"faza","Smjer: left, centre, right; Ishod!: 3rd zone, fail"),
-    b("3rd ZONE","#f39c12",0,0,"faza","Ishod!: finishing, retained, fail"),
-    b("FAZA OBRANE","#6a4bc8",0,0,"faza","Blok: high press, middle block, low zone; Ocjena: +, -"),
-    b("tranzicija +","#11a3a3",0,0,"faza","Ishod!: +, -"),
-    b("tranzicija -","#d23c3c",0,0,"faza","Ishod!: +, -"),
+    b("BUILD UP","#009a00",7,12,"faza","Formacija: 4+1, 4+2, 3+1, 3+2; Smjer: left, centre, right, direct; Ishod!: progression, fail"),
+    b("ORGANISATION","#3b95e0",7,12,"faza","Smjer: left, centre, right; Ishod!: 3rd zone, fail"),
+    b("3rd ZONE","#f39c12",7,12,"faza","Ishod!: finishing, retained, fail"),
+    b("FAZA OBRANE","#6a4bc8",7,12,"faza","Blok: high press, middle block, low zone; Ocjena: +, -"),
+    b("tranzicija +","#11a3a3",7,12,"faza","Ishod!: +, -"),
+    b("tranzicija -","#d23c3c",7,12,"faza","Ishod!: +, -"),
     b("PREKIDI","#8a6d4b",3,20,"","Strana: FN, FO; Vrsta: korner, sl udarac, 11m"),
     b("Individualno","#c23f86",7,7,"","")
   ];
@@ -666,12 +666,12 @@ function defButtons(){
 function oppButtons(){
   const b=(name,color,lead,lag,group,labels)=>({id:defId(name),name,team:"",color,lead,lag,group,labels});
   return[
-    b("BUILD UP","#009a00",0,0,"faza","Formacija: 4+1, 4+2, 3+1, 3+2, 2+3; Smjer: left, centre, right, direct; Golman: kratko, dugo; Ishod!: progression, fail"),
-    b("ORGANISATION","#3b95e0",0,0,"faza","Kanal: left, centre, right; Završetak: ubačaj, udarac, prodor, izgubljena; Ishod!: 3rd zone, fail"),
-    b("3rd ZONE","#f39c12",0,0,"faza","Završetak: ubačaj, udarac izvana, udarac iz kaznenog, prodor 1v1; Ishod!: finishing, retained, fail"),
-    b("PRESSING","#6a4bc8",0,0,"faza","Blok: high press, middle block, low zone; Okidač: povratna lopta, bočna linija, loš prijem, golman; Ishod!: +, -"),
-    b("tranzicija +","#11a3a3",0,0,"faza","Put: kontra, duga lopta, zadržavanje; Ishod!: +, -"),
-    b("tranzicija -","#d23c3c",0,0,"faza","Reakcija: protupresing, povlačenje, taktički prekršaj; Ishod!: +, -"),
+    b("BUILD UP","#009a00",7,12,"faza","Formacija: 4+1, 4+2, 3+1, 3+2, 2+3; Smjer: left, centre, right, direct; Golman: kratko, dugo; Ishod!: progression, fail"),
+    b("ORGANISATION","#3b95e0",7,12,"faza","Kanal: left, centre, right; Završetak: ubačaj, udarac, prodor, izgubljena; Ishod!: 3rd zone, fail"),
+    b("3rd ZONE","#f39c12",7,12,"faza","Završetak: ubačaj, udarac izvana, udarac iz kaznenog, prodor 1v1; Ishod!: finishing, retained, fail"),
+    b("PRESSING","#6a4bc8",7,12,"faza","Blok: high press, middle block, low zone; Okidač: povratna lopta, bočna linija, loš prijem, golman; Ishod!: +, -"),
+    b("tranzicija +","#11a3a3",7,12,"faza","Put: kontra, duga lopta, zadržavanje; Ishod!: +, -"),
+    b("tranzicija -","#d23c3c",7,12,"faza","Reakcija: protupresing, povlačenje, taktički prekršaj; Ishod!: +, -"),
     b("PREKIDI napad","#8a6d4b",3,20,"","Vrsta: korner, sl udarac, aut, 11m; Izvedba: bliža stativa, daleka stativa, kratko, direktno; Ishod!: udarac, gol, obrana"),
     b("PREKIDI obrana","#5f6b7a",3,20,"","Vrsta: korner, sl udarac; Postavka: zonska, individualna, kombinirana; Ishod!: +, -"),
     b("Ključni igrač","#c23f86",7,7,"","")
@@ -719,6 +719,9 @@ function sample(){
 }
 let S=lsGet(KEY,null);
 if(!S||!Array.isArray(S.inst)||!Array.isArray(S.buttons))S=Object.assign(blank(),{away:"Gosti"});
+/* 20. 11. 2026: faze koje su se ručno zatvarale (0 s prije, 0 s poslije) prelaze na automatski isječak 7 s prije i 12 s poslije tapa (jednom; poslije se može vratiti u Gumbi) */
+try{if(!localStorage.getItem("terenTagger.mig712")){const mg=l=>Array.isArray(l)&&l.forEach(b=>{if(b&&!+b.lag&&!+b.lead){b.lead=7;b.lag=12}});
+  mg(S.buttons);if(S.tpl)Object.values(S.tpl).forEach(mg);lsSet(KEY,S);localStorage.setItem("terenTagger.mig712","1")}}catch(e){}
 if(!S.roster)S.roster=DEF_ROSTER;if(!S.team)S.team="kust";if(!S.crests)S.crests={};if(!S.crests.kust)S.crests.kust=KUST_CREST;if(!S.rosters)S.rosters={kust:S.roster};if(!S.rosters.cro)S.rosters.cro=CRO_ROSTER;if(S.rosters.cro===CRO_ROSTER_OLD){S.rosters.cro=CRO_ROSTER;if(S.team==="cro"&&(S.roster===CRO_ROSTER_OLD||S.kind!=="opp"))S.roster=CRO_ROSTER}if(!S.rosters["opp:ceska"])S.rosters["opp:ceska"]=CZE_ROSTER;S.roster=S.roster.replace(/^9 Filip Golem$/m,"Filip Golem"); /* Gashi wears 9 */if(S.home==="Domaći"||S.home==="NK Zagreb")S.home=DEF_HOME;if(S.showZone==null)S.showZone=true;if(!S.zones)S.zones="4x2";if(!S.sys)S.sys={us:"",op:""};if(S.sysList==null)S.sysList=DEFSYS;if(!S.created)S.created=[];if(!S.mid)S.mid=nid();
 S.buttons.forEach(b=>{if(b.name==="Individualno"&&+b.lead===5&&+b.lag===5){b.lead=7;b.lag=7}});
 /* novi igrači u postojećem popisu Kustošije (popis na mobitelu se inače ne mijenja sam) */
@@ -1645,7 +1648,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.20f",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.20g",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
