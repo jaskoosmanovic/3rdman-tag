@@ -282,6 +282,10 @@ body.mm .cw{display:flex;flex-wrap:wrap;gap:5px 6px}
 .pempty{color:var(--muted);font-size:14px;padding:8px 2px}
 .vrow{display:flex;gap:8px;align-items:stretch}
 .vbig{width:100%;min-height:54px;border-radius:10px;border:2px solid var(--gold);background:var(--surface);color:var(--ink);font:800 18px var(--f-body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vdict{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;gap:8px;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;background:var(--surface);border-bottom:3px solid var(--gold);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.vdict input{flex:1 1 auto;min-width:0;min-height:48px;font:600 18px var(--f-body);padding:8px 10px;border:2px solid var(--gold);border-radius:8px;background:var(--bg);color:var(--ink)}
+.vdict button{min-height:48px;padding:0 14px;font:700 16px var(--f-body);border-radius:8px}
+.vtest{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.vtest td,.vtest th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}.vtest .ok{color:#2e7d32;font-weight:700}.vtest .no{color:var(--danger);font-weight:700}
 .vbig.on{background:var(--rec);border-color:var(--rec);color:#fff}
 .vbtn{flex:0 0 auto;min-height:52px;padding:6px 16px;border-radius:8px;border:2px solid var(--c);background:var(--surface);color:var(--ink);font:700 17px var(--f-body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
 .nmic{flex:0 0 auto;min-width:48px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:20px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}.nmic.on{background:var(--rec);border-color:var(--rec)}
@@ -440,6 +444,7 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
   </div>
 
   <section class="cw" id="cw" aria-label="Prozor s kodovima"></section>
+  <div class="vdict" id="vDict" hidden><input id="vDictIn" type="text" enterkeyhint="done" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="words" placeholder="🎤 na tipkovnici, reci igrače"><button class="primary" id="vDictOk">Gotovo</button><button class="ghost" id="vDictNo" aria-label="Odustani">×</button></div>
 
   <div class="blk zone" id="zoneBlk">
     <div class="cb" style="cursor:default"><span class="nm">Zona</span><span class="meta"><span class="tog" id="zoneFor">odabrano</span></span></div>
@@ -571,6 +576,11 @@ body.sa .claude-only{display:none!important}body:not(.sa) .sa-only{display:none!
     <div class="row"><label class="lbl-s" for="indLead">Sekundi prije tapa</label><input type="number" id="indLead" min="0" max="30" style="width:70px"><label class="lbl-s" for="indLag">poslije</label><input type="number" id="indLag" min="1" max="30" style="width:70px"></div>
     <textarea class="big" id="indLbl" spellcheck="false" style="min-height:70px" placeholder="prazno = samo video igrača"></textarea>
     <div class="bar"><button class="primary" id="saveInd">Spremi prozor igrača</button><button class="ghost" id="defInd">Zadano</button></div>
+    <h3>Glas</h3>
+    <p><b>Tipkovnica</b>: tap na 🎤 otvori polje, tapni mikrofon na tipkovnici iPhonea i izgovori (npr. „Pršlja dobiveni duel, Soudani izgubljeni duel”), pa Gotovo. Vrijeme taga je trenutak prvog tapa. <b>Jedan tap</b>: drži 🎤 i govori; radi samo ako ga Test glasa potvrdi na ovom mobitelu.</p>
+    <div class="kseg" id="vModeSeg"><button data-v="kbd" aria-pressed="true">Tipkovnica (pouzdano)</button><button data-v="web" aria-pressed="false">Jedan tap</button></div>
+    <div class="bar"><button class="ghost" id="vTestBtn">Test glasa (8 kratkih snimanja)</button></div>
+    <div id="vTestOut"></div>
     <h3>Opće oznake</h3>
     <p>Oznake koje vrijede za bilo koji kod, idu na odabranu instancu. Jedna grupa po retku: <code>Grupa: oznaka, oznaka</code>. Može ostati prazno.</p>
     <textarea class="big" id="lblText" spellcheck="false"></textarea>
@@ -806,7 +816,7 @@ function renderCW(){if(VOICE.on){voiceUI();return}
   document.body.classList.toggle("win-igr",S.win==="igr");
   const sw=`<div class="wsw" role="tablist" aria-label="Prozor"><button data-w="faze" aria-pressed="${S.win!=="igr"}">Faze</button><button data-w="igr" aria-pressed="${S.win==="igr"}">Igrači</button></div>`;
   if(S.win==="igr"){const pb=playerBtns();const sn=n=>{const w=String(n).replace(/^#\d+\s*/,"").trim().split(/\s+/);return w.length?w[w.length-1]:n};
-    const big=`<button class="vbig${VOICE.on&&VOICE.mode==="tag"?" on":""}" id="vBig" aria-label="Drži i reci prezime igrača">🎤 <span id="vBigTxt">${VOICE.on&&VOICE.mode==="tag"?"Slušam… reci prezime":"Drži i reci prezime"}</span></button>`;
+    const big=`<button class="vbig${VOICE.on&&VOICE.mode==="tag"?" on":""}" id="vBig" aria-label="Drži i reci prezime igrača">🎤 <span id="vBigTxt">${VOICE.on&&VOICE.mode==="tag"?"Slušam… reci prezime":VKBD()?"Tapni i izgovori igrače":"Drži i reci prezime"}</span></button>`;
     $("cw").innerHTML=sw+(pb.length?big+`<div class="pgrid">${pb.map(b=>{const n=S.inst.filter(i=>isOf(i,b)).length;return`<button class="cb" data-b="${esc(b.id)}" style="--c:${esc(b.color)};--cf:${fg(b.color)}" title="${esc(b.name)}"><span class="no">${esc(b.player.no||"–")}</span><span class="nm">${esc(b.player.no?sn(b.player.name):b.name)}</span><span class="ct">${n}</span></button>`}).join("")}</div>`:`<div class="pempty">Popis igrača je prazan. Upiši igrače u Postavke → Igrači.</div>`);
     tick();return}
   if(document.body.classList.contains("mm")){const by={};S.buttons.forEach(b=>{const m=momOf(b);(by[m]=by[m]||[]).push(b)});
@@ -956,22 +966,64 @@ function noteEl(){return S.win==="igr"?$("vNoteTxt"):$("noteIn")}
 function setNote(tid,txt,replace){const t=S.inst.find(i=>i.id===tid);if(!t)return;txt=String(txt||"").trim().replace(/\s+/g," ");
   const cap=x=>x?x[0].toUpperCase()+x.slice(1):x;const v=replace?txt:((t.note?t.note.replace(/[.\s]+$/,"")+". ":"")+cap(txt));
   beginAct("📝 bilješka");t.note=v.slice(0,240);const a=S.win==="igr"?[]:notePlayers(t);endAct();save();renderLive();if(!replace)toast("📝 "+txt+(a.length?" · igrač: "+a.join(", "):""))}
+/* način glasa: „kbd” = diktiranje tipkovnicom iPhonea (zadano, pouzdano), „web” = drži 🎤 (Web Speech, varijanta iz Testa glasa) */
+const VVARS=[{id:1,name:"Novi svaki put, neprekidno",reuse:false,cont:true},{id:2,name:"Novi svaki put, do tišine",reuse:false,cont:false},{id:3,name:"Isti, do tišine",reuse:true,cont:false},{id:4,name:"Isti, neprekidno",reuse:true,cont:true}];
+function VKBD(){try{return localStorage.getItem("terenTagger.vMode")!=="web"}catch(e){return true}}
+function VVAR(){let id=3;try{id=+localStorage.getItem("terenTagger.vVar")||3}catch(e){}return VVARS.find(v=>v.id===id)||VVARS[2]}
+function vModeRender(){document.querySelectorAll("#vModeSeg button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.v==="kbd")===VKBD())))}
+function vSetMode(m,id){try{localStorage.setItem("terenTagger.vMode",m);if(id)localStorage.setItem("terenTagger.vVar",String(id))}catch(e){}vModeRender();renderLive()}
+/* diktiranje tipkovnicom: polje na vrhu, tekst ide u isto prepoznavanje igrača (više igrača, padeži, „broj N”) */
+const DICT={t0:null,open:false,done:false};
+function dictOpen(){DICT.t0=snow();DICT.open=true;DICT.done=false;const w=$("vDict"),i=$("vDictIn");i.value="";w.hidden=false;i.focus();try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}}
+function dictClose(go){if(!DICT.open)return;DICT.open=false;const i=$("vDictIn"),txt=i.value.trim();$("vDict").hidden=true;i.blur();if(go&&txt&&!DICT.done){DICT.done=true;voiceTag(txt,DICT.t0)}}
+$("vDictOk").addEventListener("pointerdown",e=>e.preventDefault());$("vDictOk").onclick=()=>dictClose(true);
+$("vDictNo").addEventListener("pointerdown",e=>e.preventDefault());$("vDictNo").onclick=()=>{$("vDictIn").value="";dictClose(false)};
+$("vDictIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();dictClose(true)}});
+$("vDictIn").addEventListener("blur",()=>setTimeout(()=>{if(DICT.open&&document.activeElement!==$("vDictIn"))dictClose(true)},150));
+$("cw").addEventListener("click",e=>{if(VKBD()&&e.target.closest("#vBig"))dictOpen()});
+$("ctx").addEventListener("click",e=>{if(!VKBD())return;if(e.target.closest("#vBtn")){const f=$("vTxt");if(f){f.focus();f.select&&f.select()}}else if(e.target.closest("#vNote")){const f=$("vNoteTxt");if(f)f.focus()}});
+$("nMic").addEventListener("click",()=>{if(VKBD())$("noteIn").focus()});
+$("vModeSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)vSetMode(b.dataset.v)});
+/* Test glasa: svaka varijanta dva puta zaredom (kvar na iPhoneu je bio da radi samo prvo slušanje) */
+const VT={plan:[],step:0,res:{},R:{},busy:false};
+function vtRender(){const out=$("vTestOut");if(!VT.plan.length){out.innerHTML="";return}
+  const k=VT.step,cur=VT.plan[k];
+  const rows=VVARS.map(v=>{const a=VT.res[v.id]||[];const c=x=>x?(x.txt?`<span class="ok">✓</span> ${esc(x.txt)}`:`<span class="no">✗</span> <small>${esc(x.ev)}</small>`):"–";const good=a.length===2&&a[0].txt&&a[1].txt;
+    return`<tr><td>${v.id}. ${esc(v.name)}</td><td>${c(a[0])}</td><td>${c(a[1])}</td><td>${good?`<button class="ghost" data-vuse="${v.id}">Koristi</button>`:""}</td></tr>`}).join("");
+  out.innerHTML=(cur?`<p><b>${VT.busy?"Slušam… reci: „Pršlja dobiveni duel”":"Tapni „Sljedeći”, pa odmah reci: „Pršlja dobiveni duel”"}</b> (varijanta ${cur.v.id}, ${cur.round}. put, ${k+1}/${VT.plan.length})</p><div class="bar"><button class="primary" id="vtNext" ${VT.busy?"disabled":""}>Sljedeći</button></div>`:`<p><b>Gotovo.</b> Slikaj ovu tablicu. Ako neka varijanta ima ✓ oba puta, tapni „Koristi” i glas radi na jedan tap.</p>`)+
+    `<table class="vtest"><tr><th>Varijanta</th><th>1.</th><th>2.</th><th></th></tr>${rows}</table>`}
+function vtStep(){const cur=VT.plan[VT.step];if(!cur||VT.busy)return;const v=cur.v;
+  if(VOICE.R){try{VOICE.R.abort()}catch(_){}VOICE.R=null}
+  let r;try{r=v.reuse?(VT.R[v.id]||(VT.R[v.id]=new SR())):new SR()}catch(e){(VT.res[v.id]=VT.res[v.id]||[]).push({txt:"",ev:"new:"+(e&&e.name)});VT.step++;vtRender();return}
+  r.lang="hr-HR";r.interimResults=true;r.maxAlternatives=1;r.continuous=v.cont;
+  const T0=Date.now(),ev=[],L=x=>ev.push(x+((Date.now()-T0)/1000).toFixed(1));let txt="",fin=false,tm;
+  r.onaudiostart=()=>L("aa");r.onspeechstart=()=>L("ss");r.onresult=e=>{L("r");let s2="";for(let i=0;i<e.results.length;i++)s2+=e.results[i][0].transcript;txt=s2};
+  r.onerror=e=>L("E:"+e.error);
+  const finish=()=>{if(fin)return;fin=true;clearTimeout(tm);(VT.res[v.id]=VT.res[v.id]||[]).push({txt:txt.trim(),ev:ev.join(" ")});VT.busy=false;VT.step++;vtRender()};
+  r.onend=()=>{L("end");finish()};
+  VT.busy=true;vtRender();
+  try{r.start();L("s")}catch(e){L("x:"+(e&&e.name));finish();return}
+  setTimeout(()=>{try{r.stop()}catch(_){}},4500);tm=setTimeout(()=>{L("bez kraja");try{r.abort()}catch(_){}finish()},8000)}
+$("vTestBtn").onclick=()=>{if(!SR){$("vTestOut").innerHTML="<p>Ovaj preglednik nema izravno prepoznavanje govora. Koristi Tipkovnicu.</p>";return}
+  VT.plan=[];VVARS.forEach(v=>{VT.plan.push({v,round:1});VT.plan.push({v,round:2})});VT.step=0;VT.res={};VT.R={};VT.busy=false;vtRender()};
+$("vTestOut").addEventListener("click",e=>{if(e.target.closest("#vtNext"))vtStep();const u=e.target.closest("[data-vuse]");if(u){vSetMode("web",+u.dataset.vuse);toast("Glas: jedan tap, varijanta "+u.dataset.vuse)}});
+vModeRender();
 /* iOS Safari: drugi „new SpeechRecognition” na istoj stranici sustav prekine („aborted”), pa radi samo prvo slušanje.
    Zato jedan prepoznavač za cijelu sesiju; novo slušanje kreće tek kad je prethodno javilo kraj (onend). */
 function voiceRec(){if(VOICE.R)return VOICE.R;const r=new SR();r.lang="hr-HR";r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
   const ev=x=>{if(VOICE.ev&&VOICE.ev.length<24)VOICE.ev.push(x+((Date.now()-VOICE.T0)/1000).toFixed(1))};
-  ["audiostart","speechstart","speechend","audioend"].forEach(n=>r.addEventListener(n,()=>ev(n[0]+n.slice(-3,-2))));
-  r.onresult=e=>{if(!VOICE.live)return;ev("r");let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;
+  ["audiostart","speechstart","speechend","audioend"].forEach(n=>r.addEventListener(n,()=>{if(r===VOICE.R)ev(n[0]+n.slice(-3,-2))}));
+  r.onresult=e=>{if(r!==VOICE.R||!VOICE.live)return;ev("r");let s2="";for(let k=0;k<e.results.length;k++)s2+=e.results[k][0].transcript;
     VOICE.text=((VOICE.prev?VOICE.prev+" ":"")+s2).trim();const v=VOICE.mode==="note"?noteEl():$(VOICE.mode==="tag"?"vBigTxt":"vTxt");if(v)(v.tagName==="INPUT"?v.value=(VOICE.mode==="note"?VOICE.base:"")+VOICE.text:v.textContent=VOICE.text)};
-  r.onerror=e=>{ev("E:"+(e.error||""));if(VOICE.live)VOICE.err=e.error||""};
-  r.onend=()=>{ev("end");VOICE.active=false;clearTimeout(VOICE.cut);
+  r.onerror=e=>{if(r!==VOICE.R)return;ev("E:"+(e.error||""));if(VOICE.live)VOICE.err=e.error||""};
+  r.onend=()=>{if(r!==VOICE.R)return;ev("end");VOICE.active=false;clearTimeout(VOICE.cut);
     if(VOICE.pending){const m=VOICE.pending;VOICE.pending=null;setTimeout(()=>voiceBegin(m),150);return}
     if(!VOICE.live)return;const c=VOICE.err,fatal=/not-allowed|audio-capture|language-not-supported|network/.test(c||"");
     /* prst još drži 🎤: iOS je sam završio nakon tišine → nastavi slušati, tekst se nadovezuje */
     if(VOICE.held&&!fatal&&VOICE.tries<6){VOICE.tries++;VOICE.prev=VOICE.text;setTimeout(()=>{if(VOICE.held&&VOICE.live)voiceGo();else voiceDone()},120);return}
     voiceDone()};
   return VOICE.R=r}
-function voiceGo(){const r=voiceRec();VOICE.err="";try{r.start();VOICE.active=true;VOICE.ev.push("s"+((Date.now()-VOICE.T0)/1000).toFixed(1))}catch(err){VOICE.active=false;VOICE.ev.push("x:"+(err&&err.name));if(!VOICE.tries){VOICE.tries=1;try{r.abort()}catch(_){}VOICE.pending=VOICE.mode;VOICE.live=false;return}VOICE.live=false;VOICE.on=false;voiceUI();toast("Glas ovdje ne radi ("+(err&&err.name||err)+")")}}
+function voiceGo(){if(!VVAR().reuse)VOICE.R=null;const r=voiceRec();r.continuous=!!VVAR().cont;VOICE.err="";try{r.start();VOICE.active=true;VOICE.ev.push("s"+((Date.now()-VOICE.T0)/1000).toFixed(1))}catch(err){VOICE.active=false;VOICE.ev.push("x:"+(err&&err.name));if(!VOICE.tries){VOICE.tries=1;try{r.abort()}catch(_){}VOICE.pending=VOICE.mode;VOICE.live=false;return}VOICE.live=false;VOICE.on=false;voiceUI();toast("Glas ovdje ne radi ("+(err&&err.name||err)+")")}}
 function voiceStart(mode){const t=curTarget();if(mode!=="tag"&&!t)return;
   if(!SR){toast(mode==="tag"?"Glas ovdje ne radi: tapni igrača":"Glas ovdje ne radi: upiši ili tapni mikrofon na tipkovnici");const f=mode==="note"?noteEl():$("vTxt");if(mode!=="tag"&&f)f.focus();return}
   if(VOICE.live&&VOICE.text.trim()){VOICE.held=false;clearTimeout(VOICE.cut);voiceDone()}/* prethodno još nije završilo: spremi što je čulo, pa novo */
@@ -1009,12 +1061,12 @@ function voiceTag(txt,t0){const pb=playerBtns();const segs=voiceSegs(txt,pb.map(
 function voiceStop(){if(!VOICE.on||!VOICE.held)return;VOICE.held=false;if(!VOICE.active){if(!VOICE.pending)voiceDone();return}clearTimeout(VOICE.cut);VOICE.cut=setTimeout(()=>{if(VOICE.active)try{voiceRec().stop()}catch(e){}},1200)}
 /* stanje 🎤 gumba bez ponovnog crtanja: gumb pod prstom ostaje isti element (iOS inače izgubi „pusti”) */
 function voiceUI(){const on=VOICE.on,m=VOICE.mode,set=(id,act,txt)=>{const b=$(id);if(b){b.classList.toggle("on",act);if(txt!=null)b.textContent=txt}};
-  set("vBig",on&&m==="tag");const s=$("vBigTxt");if(s&&!(on&&m==="tag"&&VOICE.text))s.textContent=on&&m==="tag"?"Slušam… reci prezime":"Drži i reci prezime";
+  set("vBig",on&&m==="tag");const s=$("vBigTxt");if(s&&!(on&&m==="tag"&&VOICE.text))s.textContent=on&&m==="tag"?"Slušam… reci prezime":VKBD()?"Tapni i izgovori igrače":"Drži i reci prezime";
   set("vBtn",on&&m==="desc","🎤 "+(on&&m==="desc"?"Slušam…":"Opis"));set("vNote",on&&m==="note","🎤 "+(on&&m==="note"?"Slušam…":"Bilješka"));set("nMic",on&&m==="note")}
-$("ctx").addEventListener("pointerdown",e=>{if(e.target.closest("#vBtn")){e.preventDefault();voiceStart("desc")}else if(e.target.closest("#vNote")){e.preventDefault();voiceStart("note")}});
-$("nMic").addEventListener("pointerdown",e=>{e.preventDefault();voiceStart("note");renderTarget()});
+$("ctx").addEventListener("pointerdown",e=>{if(VKBD())return;if(e.target.closest("#vBtn")){e.preventDefault();voiceStart("desc")}else if(e.target.closest("#vNote")){e.preventDefault();voiceStart("note")}});
+$("nMic").addEventListener("pointerdown",e=>{if(VKBD())return;e.preventDefault();voiceStart("note");renderTarget()});
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>$("nMic").addEventListener(ev,()=>{if(VOICE.on)voiceStop()}));
-$("cw").addEventListener("pointerdown",e=>{if(e.target.closest("#vBig")){e.preventDefault();voiceStart("tag")}});
+$("cw").addEventListener("pointerdown",e=>{if(VKBD())return;if(e.target.closest("#vBig")){e.preventDefault();voiceStart("tag")}});
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>["ctx","cw"].forEach(id=>$(id).addEventListener(ev,e=>{if(VOICE.on&&e.target.closest("#vBtn,#vBig,#vNote"))voiceStop()})));
 document.addEventListener("pointerup",()=>{if(VOICE.on)voiceStop()});
 $("ctx").addEventListener("change",e=>{const t=curTarget();if(!t)return;if(e.target.id==="vTxt")setVoiceLabel(t.id,e.target.value);else if(e.target.id==="vNoteTxt")setNote(t.id,e.target.value,true)});
@@ -1537,7 +1589,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.20c",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.20d",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
