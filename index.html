@@ -984,14 +984,27 @@ function voiceDone(){VOICE.on=false;VOICE.live=false;VOICE.prev="";const txt=VOI
   if(!txt){renderLive();toast(/not-allowed/.test(c||"")?"Mikrofon ili diktat nije dopušten (Postavke → Safari → Mikrofon; Općenito → Tipkovnica → Diktiranje)":c==="network"?"Glas treba internet":c==="audio-capture"?"Mikrofon je zauzet (poziv ili druga aplikacija)":c==="language-not-supported"?"Hrvatski diktat nije uključen (Postavke → Općenito → Tipkovnica → Diktiranje)":"Nisam ništa čuo. Drži 🎤 dok govoriš · "+VOICE.ev.join(" "));return}
   if(VOICE.mode==="tag")voiceTag(txt,VOICE.t0);else if(VOICE.mode==="note")setNote(VOICE.tid,txt);else{setVoiceLabel(VOICE.tid,txt);toast("🎤 "+txt.toLowerCase())}}
 /* „Žabec” ili „Žabec dobiveni duel”: tag igrača u trenutku pritiska, ostatak rečenice ide kao oznaka Akcija */
-function voiceTag(txt,t0){const pb=playerBtns();const hit=playersIn(txt,pb.map(b=>b.name));
-  if(!hit.length){toast("Nisam prepoznao igrača: „"+txt+"”");renderLive();return}
-  const stems=hit.flatMap(n=>{const parts=n.replace(/^#?\d+\s*/,"").trim().split(/\s+/);return parts.map(x=>plNorm(x).trim()).filter(x=>x.length>=4).flatMap(plStems)});
-  const words=txt.split(/\s+/),rest=words.filter((w,k)=>{const n=plNorm(w).trim();if(!n)return false;if(/^(broj|br|dres)$/.test(n))return false;if(/^\d+$/.test(n)&&k>0&&/^(broj|br|dres)$/.test(plNorm(words[k-1]).trim()))return false;return !stems.some(st=>n===st||(n.startsWith(st)&&n.length-st.length<=3))}).join(" ").trim().toLowerCase();
-  leaveSample();beginAct("🎤 "+txt);let last=null;
-  for(const name of hit){const b=pb.find(x=>x.name===name);if(!b)continue;const inst=newInst(b,t0);if(rest)inst.labels.push({group:VGROUP,text:rest});last=inst}
+/* više igrača u jednom pritisku: „Pršlja dobiveni duel, Soudani izgubljeni duel” → svaki svoj tag i svoja Akcija;
+   „Pršlja i Soudani dobiveni duel” → oba dobiju „dobiveni duel” (igrač bez svojih riječi uzima riječi sljedećeg) */
+function voiceSegs(txt,names){const words=String(txt).replace(/[,;.]+/g," , ").split(/\s+/).filter(Boolean);const segs=[];let cur=null,lead=[];
+  const LINK=/^(i|pa|te|zatim|onda|a|,)$/;
+  for(let k=0;k<words.length;k++){const w=words[k],n=plNorm(w).trim();
+    let hit=[];if(/^(broj|br|dres|igrac)$/.test(n)&&k+1<words.length&&/^\d{1,3}$/.test(words[k+1])){hit=playersIn(w+" "+words[k+1],names);if(hit.length)k++}
+    else if(n.length>=4)hit=playersIn(w,names);
+    if(hit.length){hit.forEach(h=>{cur=segs.find(x=>x.name===h);if(!cur){cur={name:h,words:[]};segs.push(cur)}});continue}
+    if(!n||w===",")continue;
+    if(cur)cur.words.push(w);else lead.push(w)}
+  const trim=a=>{a=a.slice();while(a.length&&LINK.test(plNorm(a[0]).trim()))a.shift();while(a.length&&LINK.test(plNorm(a[a.length-1]).trim()))a.pop();return a};
+  lead=trim(lead);segs.forEach(x=>x.rest=trim(x.words).join(" ").trim().toLowerCase());
+  for(let i=segs.length-2;i>=0;i--)if(!segs[i].rest)segs[i].rest=segs[i+1].rest;
+  if(lead.length&&segs.length){const l=lead.join(" ").toLowerCase();segs.forEach(x=>{if(!x.rest)x.rest=l})}
+  return segs}
+function voiceTag(txt,t0){const pb=playerBtns();const segs=voiceSegs(txt,pb.map(b=>b.name));
+  if(!segs.length){toast("Nisam prepoznao igrača: „"+txt+"”");renderLive();return}
+  leaveSample();beginAct("🎤 "+txt);
+  for(const sg of segs){const b=pb.find(x=>x.name===sg.name);if(!b)continue;const inst=newInst(b,t0);if(sg.rest)inst.labels.push({group:VGROUP,text:sg.rest})}
   endAct();save();renderLive();try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}
-  toast("🎤 "+hit.join(", ")+(rest?" · "+rest:""));}
+  toast("🎤 "+segs.map(x=>x.name.replace(/^#?\d+\s*/,"")+(x.rest?" · "+x.rest:"")).join(" | "));}
 /* pusti 🎤: iOS sam završi nakon kratke tišine i preda konačni tekst; ako ne, stop nakon 1,2 s */
 function voiceStop(){if(!VOICE.on||!VOICE.held)return;VOICE.held=false;if(!VOICE.active){if(!VOICE.pending)voiceDone();return}clearTimeout(VOICE.cut);VOICE.cut=setTimeout(()=>{if(VOICE.active)try{voiceRec().stop()}catch(e){}},1200)}
 /* stanje 🎤 gumba bez ponovnog crtanja: gumb pod prstom ostaje isti element (iOS inače izgubi „pusti”) */
@@ -1524,7 +1537,7 @@ setMode((()=>{try{return localStorage.getItem("terenTagger.mode")!=="review"}cat
 })();
 
 /* ---------- samostalni način (bez Claudea) ---------- */
-const VER="2026.11.20b",BKKEY="terenTagger.lastFileBackup";
+const VER="2026.11.20c",BKKEY="terenTagger.lastFileBackup";
 function saMode(){document.body.classList.toggle("sa",isSA());if(isSA()&&S.sample){leaveSample();save();renderAll()}saBkStatus()}
 function saBkStatus(){const el=$("saBkStatus");if(!el)return;const t=lsGet(BKKEY,0),n=ARCH.length+(S.inst.length&&!S.sample?1:0);
   if(!t){el.className="pill off";el.lastChild.textContent=n?"Još nije spremljena · utakmica: "+n:"Još nije spremljena";return}
